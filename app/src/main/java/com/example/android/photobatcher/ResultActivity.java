@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.widget.GridView;
 
 import java.util.ArrayList;
 
@@ -26,12 +27,17 @@ public class ResultActivity extends AppCompatActivity {
         DatabaseTools databaseTools = new DatabaseTools(ResultActivity.this);
         currentBatch = databaseTools.getCurrentBatch();
 
-        gridRecyclerView = findViewById(R.id.galleryRecyclerView);
-//        gridRecyclerView.setHasFixedSize(true);
-        gridLayoutManager = new GridLayoutManager(getApplicationContext(), 3);
-        gridRecyclerView.setLayoutManager(gridLayoutManager);
-        GalleryAdapter adapter = new GalleryAdapter(getApplicationContext(), currentBatch, getImageViewSize());
-        gridRecyclerView.setAdapter(adapter);
+//        gridRecyclerView = findViewById(R.id.galleryRecyclerView);
+////        gridRecyclerView.setHasFixedSize(true);
+//        gridLayoutManager = new GridLayoutManager(getApplicationContext(), 3);
+//        gridRecyclerView.setLayoutManager(gridLayoutManager);
+//        GalleryAdapter adapter = new GalleryAdapter(getApplicationContext(), currentBatch, getImageViewSize());
+//        gridRecyclerView.setAdapter(adapter);
+
+        ResultGridAdapter adapter = new ResultGridAdapter(ResultActivity.this, currentBatch, getImageViewSize());
+        GridView gridView = findViewById(R.id.gridview);
+        gridView.setAdapter(adapter);
+
     }
 
     private ArrayList<ImageModel> prepareData() {
