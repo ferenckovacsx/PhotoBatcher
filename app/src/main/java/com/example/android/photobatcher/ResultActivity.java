@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -16,11 +17,15 @@ public class ResultActivity extends AppCompatActivity {
 
     RecyclerView gridRecyclerView;
     GridLayoutManager gridLayoutManager;
+    Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
+
+//        toolbar = findViewById(R.id.my_toolbar);
+//        setSupportActionBar(toolbar);
 
         //get current batch from db and save it to an ArrayList<ImageModel>
         ArrayList<ImageModel> currentBatch;
@@ -40,11 +45,6 @@ public class ResultActivity extends AppCompatActivity {
 
     }
 
-    private ArrayList<ImageModel> prepareData() {
-
-        ArrayList<ImageModel> listOfImages = new ArrayList<>();
-        return listOfImages;
-    }
 
     //This method measures screen height and width and sets the size of the cards accordingly.
     //There are 4 columns, so a card should be 1/4 of the screen WIDTH in portrait mode and 1/4 of HEIGHT in landscape mode.
@@ -56,7 +56,7 @@ public class ResultActivity extends AppCompatActivity {
         display.getMetrics(outMetrics);
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-            cardImageViewSize = outMetrics.widthPixels / 3;
+            cardImageViewSize = (outMetrics.widthPixels / 3) - 20;
         } else {
             cardImageViewSize = (outMetrics.heightPixels - getStatusBarHeight() - 10) / 3;
         }

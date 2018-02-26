@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#808080"
+    android:orientation="vertical"
     tools:context="com.example.android.photobatcher.ResultActivity">
 
     <!--<android.support.v7.widget.RecyclerView-->
@@ -22,15 +24,30 @@
 
     <!--</android.support.v7.widget.RecyclerView>-->
 
+    <!--<android.support.v7.widget.Toolbar-->
+    <!--android:id="@+id/my_toolbar"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="?attr/actionBarSize"-->
+    <!--android:background="@color/colorPrimaryDark"-->
+    <!--app:titleTextColor="#ffffff"-->
+    <!--android:elevation="4dp" />-->
+
     <GridView
         android:id="@+id/gridview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:horizontalSpacing="10dp"
         android:numColumns="3"
-        android:padding="15dp"
-        android:horizontalSpacing="15dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:padding="10dp"
+        android:verticalSpacing="10dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimaryDark" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 </android.support.constraint.ConstraintLayout>
