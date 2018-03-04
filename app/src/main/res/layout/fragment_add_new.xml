@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:src="@drawable/ic_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:layout_width="119dp"
+        android:layout_height="15dp"
+        android:layout_marginTop="8dp"
+        android:text="Új tétel létrehozása"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="189dp" />
+
+
+    <EditText
+        android:id="@+id/batch_name_edittext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:hint="Tétel neve"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="166dp" />
+
+    <EditText
+        android:id="@+id/batch_date_edittext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:hint="Dátum"
+        app:layout_constraintEnd_toEndOf="@+id/batch_name_edittext"
+        app:layout_constraintStart_toStartOf="@+id/batch_name_edittext"
+        app:layout_constraintTop_toBottomOf="@+id/batch_name_edittext" />
+
+    <EditText
+        android:id="@+id/batch_note_edittext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:hint="Megjegyzés"
+        app:layout_constraintEnd_toEndOf="@+id/batch_image_count_edittext"
+        app:layout_constraintStart_toStartOf="@+id/batch_image_count_edittext"
+        app:layout_constraintTop_toBottomOf="@+id/batch_image_count_edittext" />
+
+    <EditText
+        android:id="@+id/batch_image_count_edittext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:hint="Képek száma"
+        app:layout_constraintEnd_toEndOf="@+id/batch_date_edittext"
+        app:layout_constraintStart_toStartOf="@+id/batch_date_edittext"
+        app:layout_constraintTop_toBottomOf="@+id/batch_date_edittext" />
+
+    <ImageView
+        android:id="@+id/submit_to_cloud"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/ic_backup_black_24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</android.support.constraint.ConstraintLayout>

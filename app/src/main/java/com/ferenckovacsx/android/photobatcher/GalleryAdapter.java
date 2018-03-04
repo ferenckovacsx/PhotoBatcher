@@ -1,4 +1,4 @@
-package com.example.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher;
 
 import android.content.Context;
 import android.net.Uri;

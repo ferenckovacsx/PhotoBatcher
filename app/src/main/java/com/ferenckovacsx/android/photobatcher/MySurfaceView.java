@@ -1,4 +1,4 @@
-package com.example.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher;
 
 /**
  * Created by ferenckovacsx on 2018-02-03.

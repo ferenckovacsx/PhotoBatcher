@@ -1,23 +1,28 @@
-package com.example.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher;
 
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.Uri;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
+import android.view.View;
 import android.widget.GridView;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 
-public class ResultActivity extends AppCompatActivity {
+public class ResultActivity extends AppCompatActivity implements SubmitBatchFragment.OnFragmentInteractionListener{
 
     RecyclerView gridRecyclerView;
     GridLayoutManager gridLayoutManager;
     Toolbar toolbar;
+    ImageView submitBatchButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +31,8 @@ public class ResultActivity extends AppCompatActivity {
 
 //        toolbar = findViewById(R.id.my_toolbar);
 //        setSupportActionBar(toolbar);
+
+        submitBatchButton = findViewById(R.id.done);
 
         //get current batch from db and save it to an ArrayList<ImageModel>
         ArrayList<ImageModel> currentBatch;
@@ -42,6 +49,20 @@ public class ResultActivity extends AppCompatActivity {
         ResultGridAdapter adapter = new ResultGridAdapter(ResultActivity.this, currentBatch, getImageViewSize());
         GridView gridView = findViewById(R.id.gridview);
         gridView.setAdapter(adapter);
+
+        submitBatchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                SubmitBatchFragment fragment = new SubmitBatchFragment();
+//                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+//                transaction.add(R.id.container, fragment);
+//                transaction.addToBackStack(null);
+//                transaction.commit();
+
+                Intent intent = new Intent(ResultActivity.this, SubmitBatchActivity.class);
+                startActivity(intent);
+            }
+        });
 
     }
 
@@ -71,5 +92,10 @@ public class ResultActivity extends AppCompatActivity {
             result = getResources().getDimensionPixelSize(resourceId);
         }
         return result;
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 }
