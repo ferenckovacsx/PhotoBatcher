@@ -62,4 +62,16 @@ public class BatchPOJO {
     public void setImageCount(int imageCount) {
         this.imageCount = imageCount;
     }
+
+
+    @Override
+    public String toString() {
+        return "BatchPOJO{" +
+                "batchID='" + batchID + '\'' +
+                ", uploadDate='" + uploadDate + '\'' +
+                ", lastModifiedDate='" + lastModifiedDate + '\'' +
+                ", note='" + note + '\'' +
+                ", imageCount=" + imageCount +
+                '}';
+    }
 }

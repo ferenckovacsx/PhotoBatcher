@@ -46,9 +46,13 @@ import java.util.Locale;
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
-public class SubmitBatchActivity extends AppCompatActivity implements AddToExistingFragment.OnFragmentInteractionListener, EasyPermissions.PermissionCallbacks {
+public class SubmitBatchActivity
+        extends AppCompatActivity
+        implements
+        AddToExistingFragment.OnFragmentInteractionListener,
+        AddNewFragment.OnFragmentInteractionListener,
+        EasyPermissions.PermissionCallbacks {
 
-    ImageView submitToCloudBtn;
     ProgressDialog mProgress;
 
     ImageView addNewButton, addToExistingButton;
@@ -85,7 +89,10 @@ public class SubmitBatchActivity extends AppCompatActivity implements AddToExist
         addNewButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                AddNewFragment fragment = new AddNewFragment();
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.add(R.id.container, fragment);
+                transaction.commit();
             }
         });
 
@@ -99,6 +106,7 @@ public class SubmitBatchActivity extends AppCompatActivity implements AddToExist
                 transaction.commit();
             }
         });
+
 
 
     }

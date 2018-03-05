@@ -42,7 +42,8 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="60dp"
+        android:padding="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/add_to_existing_textview" />
@@ -54,7 +55,7 @@
         android:layout_marginStart="16dp"
         android:text="Válassz a listából:"
         android:textColor="#000000"
-        android:textSize="12sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/select_batch_ACTV"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -64,7 +65,7 @@
         android:layout_marginStart="16dp"
         android:text="Feltöltés ideje:"
         android:textColor="#000000"
-        android:textSize="12sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/upload_date_edittext"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -74,9 +75,11 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="60dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        android:padding="20dp"
+
         app:layout_constraintTop_toBottomOf="@+id/select_batch_ACTV" />
 
     <TextView
@@ -86,7 +89,7 @@
         android:layout_marginStart="16dp"
         android:text="Utolsó módosítás ideje:"
         android:textColor="#000000"
-        android:textSize="12sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/last_modified_date_edittext"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -96,7 +99,8 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="60dp"
+        android:padding="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/upload_date_edittext" />
@@ -108,7 +112,7 @@
         android:layout_marginStart="16dp"
         android:text="Megjegyzés:"
         android:textColor="#000000"
-        android:textSize="12sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/add_note_edittext"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -118,7 +122,8 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="60dp"
+        android:padding="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/last_modified_date_edittext" />
@@ -128,10 +133,12 @@
         android:id="@+id/submit_existing"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginBottom="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginStart="24dp"
         android:background="@drawable/button_shape"
+        android:padding="32dp"
+        android:textSize="22sp"
         android:text="Feltöltés"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

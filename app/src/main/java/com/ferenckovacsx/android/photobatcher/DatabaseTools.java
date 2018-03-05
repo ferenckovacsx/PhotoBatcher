@@ -29,6 +29,8 @@ public class DatabaseTools extends SQLiteOpenHelper {
     private static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS " + DATABASE_NAME + "(Name TEXT NULL, Path TEXT NULL)";
     private static final String DELETE_TABLE = "DROP TABLE IF EXISTS " + DATABASE_NAME;
 
+    Context context;
+
     DatabaseTools(Context context) {
 
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -89,4 +91,11 @@ public class DatabaseTools extends SQLiteOpenHelper {
         cursor.close();
         return scoreEntryList;
     }
+
+    void clearTable() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + DATABASE_NAME);
+    }
+
+
 }

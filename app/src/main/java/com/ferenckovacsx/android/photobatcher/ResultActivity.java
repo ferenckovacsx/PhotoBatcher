@@ -1,5 +1,6 @@
 package com.ferenckovacsx.android.photobatcher;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -12,12 +13,16 @@ import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.GridView;
 import android.widget.ImageView;
 
 import java.util.ArrayList;
 
-public class ResultActivity extends AppCompatActivity implements SubmitBatchFragment.OnFragmentInteractionListener{
+public class ResultActivity extends AppCompatActivity
+        implements
+        AddToExistingFragment.OnFragmentInteractionListener,
+        AddNewFragment.OnFragmentInteractionListener {
 
     RecyclerView gridRecyclerView;
     GridLayoutManager gridLayoutManager;
@@ -59,8 +64,50 @@ public class ResultActivity extends AppCompatActivity implements SubmitBatchFrag
 //                transaction.addToBackStack(null);
 //                transaction.commit();
 
-                Intent intent = new Intent(ResultActivity.this, SubmitBatchActivity.class);
-                startActivity(intent);
+
+                // custom dialog
+                final Dialog dialog = new Dialog(ResultActivity.this);
+                dialog.setContentView(R.layout.custom_dialog);
+
+//                WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+//                lp.copyFrom(dialog.getWindow().getAttributes());
+//                lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+//                lp.height = WindowManager.LayoutParams.MATCH_PARENT;
+//                dialog.show();
+//                dialog.getWindow().setAttributes(lp);
+
+
+                ImageView createNewButton = dialog.findViewById(R.id.create_new_button);
+                ImageView addToExistingButton = dialog.findViewById(R.id.add_to_existing_button);
+
+                createNewButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AddNewFragment fragment = new AddNewFragment();
+                        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                        transaction.add(R.id.container, fragment);
+                        transaction.commit();
+                        dialog.dismiss();
+                    }
+                });
+
+                addToExistingButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AddToExistingFragment fragment = new AddToExistingFragment();
+                        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                        transaction.add(R.id.container, fragment);
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.show();
+
+//
+//                Intent intent = new Intent(ResultActivity.this, SubmitBatchActivity.class);
+//                startActivity(intent);
             }
         });
 

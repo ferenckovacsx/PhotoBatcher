@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -35,7 +36,6 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,14 +51,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import static android.os.Environment.DIRECTORY_PICTURES;
+import static com.ferenckovacsx.android.photobatcher.Utilities.generateBatchName;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-    private Button takePictureButton;
-    private Button doneTakingPictures;
-    private TextView imageCountTextview;
+    private TextView counterTextView;
     private TextureView textureView;
-    private ImageView captureThumbnail;
+    private ImageView captureThumbnail, captureButton, doneButton, counterImageBackground;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static {
@@ -85,33 +84,36 @@ public class MainActivity extends AppCompatActivity {
     FileObserver fileObserver;
     DatabaseTools databaseTools;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         textureView = findViewById(R.id.texture);
         assert textureView != null;
-//        imageCountTextview = findViewById(R.id.image_count_textview);
+        counterTextView = findViewById(R.id.counter_textview);
         textureView.setSurfaceTextureListener(textureListener);
-        takePictureButton = findViewById(R.id.btn_takepicture);
-        doneTakingPictures = findViewById(R.id.btn_done);
+        captureButton = findViewById(R.id.btn_takepicture);
+        doneButton = findViewById(R.id.btn_done);
         captureThumbnail = findViewById(R.id.capture_thumbnail);
+        counterImageBackground = findViewById(R.id.counter_background);
 
-        assert takePictureButton != null;
+        assert captureButton != null;
 
         databaseTools = new DatabaseTools(MainActivity.this);
 
-        takePictureButton.setOnClickListener(new View.OnClickListener() {
+        captureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 takePicture();
-                imageCount += 1;
+
+
             }
         });
 
 
-        doneTakingPictures.setOnClickListener(new View.OnClickListener() {
+        doneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -125,19 +127,15 @@ public class MainActivity extends AppCompatActivity {
         fileObserver = new FileObserver(Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES).toString()) {
             @Override
             public void onEvent(int event, String file) {
+
                 Log.e("FILEOBSERVER", "File was created: " + file);
 
                 if (event == FileObserver.CREATE) {
 
-                    String filePath = Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES) + "/" + file;
+                    final String filePath = Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES) + "/" + file;
 
                     //add new image to batch database
                     databaseTools.insertNewScore(file, filePath);
-
-                    //replace thumbnail with new image
-                    Bitmap bmImg = BitmapFactory.decodeFile(filePath);
-                    captureThumbnail.setImageBitmap(bmImg);
-
 
                     //notify external memory to scan for new image
                     final Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
@@ -145,6 +143,27 @@ public class MainActivity extends AppCompatActivity {
                     scanIntent.setData(contentUri);
                     sendBroadcast(scanIntent);
 
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            int color = Color.parseColor("#000000");
+                            captureButton.setColorFilter(color);
+                            captureButton.setEnabled(true);
+
+                            //replace thumbnail with new image
+                            Bitmap bmImg = BitmapFactory.decodeFile(filePath);
+                            captureThumbnail.setImageBitmap(bmImg);
+
+                            //make done button and counter visible
+                            imageCount += 1;
+                            counterTextView.setText(String.valueOf(imageCount));
+                            if (imageCount > 0) {
+                                doneButton.setVisibility(View.VISIBLE);
+                                counterImageBackground.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    });
                 }
             }
         };
@@ -229,6 +248,11 @@ public class MainActivity extends AppCompatActivity {
         }
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
+
+            int color = Color.parseColor("#505050");
+            captureButton.setColorFilter(color);
+            captureButton.setEnabled(false);
+
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraDevice.getId());
             Size[] jpegSizes = null;
             if (characteristics != null) {
@@ -241,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
                 height = jpegSizes[0].getHeight();
             }
             ImageReader reader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
-            List<Surface> outputSurfaces = new ArrayList<Surface>(2);
+            List<Surface> outputSurfaces = new ArrayList<>(2);
             outputSurfaces.add(reader.getSurface());
             outputSurfaces.add(new Surface(textureView.getSurfaceTexture()));
             final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
@@ -253,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
             final File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            final File file = new File(path, String.valueOf(System.currentTimeMillis()) + ".jpg");
+            final File file = new File(path, generateBatchName("IMG") + ".jpg");
 
             path.mkdirs();
 
@@ -309,7 +333,6 @@ public class MainActivity extends AppCompatActivity {
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
                     Log.e(TAG, "capture completed");
-                    Toast.makeText(MainActivity.this, "Image saved to:" + file, Toast.LENGTH_SHORT).show();
                     createCameraPreview();
                 }
             };
@@ -439,4 +462,5 @@ public class MainActivity extends AppCompatActivity {
         stopBackgroundThread();
         super.onPause();
     }
+
 }

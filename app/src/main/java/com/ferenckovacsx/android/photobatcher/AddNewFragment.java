@@ -7,7 +7,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.inputmethodservice.KeyboardView;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -19,12 +18,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -42,26 +39,25 @@ import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 import static android.app.Activity.RESULT_OK;
+import static com.ferenckovacsx.android.photobatcher.Utilities.generateBatchName;
+import static com.ferenckovacsx.android.photobatcher.Utilities.getFormattedDate;
 
-public class AddToExistingFragment extends Fragment implements EasyPermissions.PermissionCallbacks {
+public class AddNewFragment extends Fragment implements EasyPermissions.PermissionCallbacks {
 
     private OnFragmentInteractionListener mListener;
 
     ProgressDialog mProgress;
-    AutoCompleteTextView selectBatchACTV;
-    EditText uploadDateEditText, modifiedEditText, noteEditText;
+    EditText batchNameEditText, uploadDateEditText, imageCountEditText, noteEditText;
+    ImageView backButton;
+    TextView backButtonTV;
     Button submitButton;
 
     GoogleAccountCredential mCredential;
@@ -77,13 +73,13 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS};
 
-//    ArrayAdapter<String> ACTVadapter;
+    //    ArrayAdapter<String> ACTVadapter;
     CustomACTVAdapter ACTVadapter;
     ArrayList<String> listOfBatchIDs;
     ArrayList<BatchPOJO> listOfBatches;
     BatchPOJO selectedBatch;
 
-    public AddToExistingFragment() {
+    public AddNewFragment() {
     }
 
 
@@ -108,54 +104,39 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View submitBatchView = inflater.inflate(R.layout.fragment_add_to_existing, container, false);
+        View submitBatchView = inflater.inflate(R.layout.fragment_add_new, container, false);
 
         submitButton = submitBatchView.findViewById(R.id.submit_existing);
-        selectBatchACTV = submitBatchView.findViewById(R.id.select_batch_ACTV);
-        uploadDateEditText = submitBatchView.findViewById(R.id.upload_date_edittext);
-        modifiedEditText = submitBatchView.findViewById(R.id.last_modified_date_edittext);
-        noteEditText = submitBatchView.findViewById(R.id.add_note_edittext);
+        batchNameEditText = submitBatchView.findViewById(R.id.add_new_name_edittext);
+        uploadDateEditText = submitBatchView.findViewById(R.id.add_new_upload_dateedittext);
+        imageCountEditText = submitBatchView.findViewById(R.id.add_new_image_count_edittext);
+        noteEditText = submitBatchView.findViewById(R.id.add_new_note_edittext);
+        backButton = submitBatchView.findViewById(R.id.back_imageview);
+        backButtonTV = submitBatchView.findViewById(R.id.back_textview);
 
-        selectBatchACTV.setFocusable(false);
+        batchNameEditText.setText(generateBatchName("BATCH"));
+        batchNameEditText.setClickable(false);
+        batchNameEditText.setFocusable(false);
+        batchNameEditText.setFocusableInTouchMode(false);
+
+        uploadDateEditText.setText(getFormattedDate());
         uploadDateEditText.setClickable(false);
         uploadDateEditText.setFocusable(false);
         uploadDateEditText.setFocusableInTouchMode(false);
-        modifiedEditText.setClickable(false);
-        modifiedEditText.setFocusable(false);
-        modifiedEditText.setFocusableInTouchMode(false);
+
+        imageCountEditText.setText(String.valueOf(25));
+        imageCountEditText.setClickable(false);
+        imageCountEditText.setFocusable(false);
+        imageCountEditText.setFocusableInTouchMode(false);
 
         mProgress = new ProgressDialog(getContext());
-        mProgress.setMessage("Adatok lekérdezése...");
+        mProgress.setMessage("Adatok feltöltése...");
 
         listOfBatches = new ArrayList<>();
         listOfBatchIDs = new ArrayList<>();
 
-        getResultsFromApi();
 
         Log.i(TAG, "list of batches onCreateView: " + listOfBatches.size());
-
-        ACTVadapter = new CustomACTVAdapter(getContext(), R.layout.actv_row_item, listOfBatches);
-        selectBatchACTV.setThreshold(1);
-        selectBatchACTV.setAdapter(ACTVadapter);
-
-        selectBatchACTV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectBatchACTV.showDropDown();
-            }
-        });
-
-        selectBatchACTV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectBatchACTV.setText(ACTVadapter.getItem(position).batchID);
-                uploadDateEditText.setText(ACTVadapter.getItem(position).uploadDate);
-                modifiedEditText.setText(ACTVadapter.getItem(position).lastModifiedDate);
-
-                Toast.makeText(getContext(), ACTVadapter.getItem(position).batchID, Toast.LENGTH_SHORT).show();
-            }
-        });
 
 
         submitButton.setOnClickListener(new View.OnClickListener() {
@@ -419,15 +400,12 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
         protected String doInBackground(Void... params) {
             try {
 
-                Date c = Calendar.getInstance().getTime();
+                String batchName = batchNameEditText.getText().toString();
+                int imageCount = Integer.parseInt(imageCountEditText.getText().toString());
+                String uploadDate = getFormattedDate();
+                String note = noteEditText.getText().toString();
 
-                SimpleDateFormat df = new SimpleDateFormat("yyyy.MM.dd, HH:mm:ss", Locale.ENGLISH);
-                String formattedDate = df.format(c);
-                String name = String.valueOf(System.currentTimeMillis());
-
-                getDataFromApi();
-
-                return setData(name, 8, formattedDate, "Nincs megjegyzés", "");
+                return setData(batchName, imageCount, uploadDate, note, "");
             } catch (Exception e) {
                 mLastError = e;
                 cancel(true);
@@ -435,57 +413,6 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
             }
         }
 
-        /**
-         * Fetch a list of names and majors of students in a sample spreadsheet:
-         * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-         *
-         * @return List of names and majors
-         * @throws IOException
-         */
-        private BatchPOJO getDataFromApi() throws IOException {
-
-//            setData("20180304_DCIM", 8, "2018.08.05, 12:12", "Nincs megjegyzés", "");
-
-//            BatchPOJO selectedBatch = new BatchPOJO();
-
-            String spreadsheetId = "1EjMmkgbJVtekL0j8JTtmFdYAIO38kRzA_27IAznaOE0";
-            String range = "A2:E19";
-
-            List<String> results = new ArrayList<>();
-
-            ValueRange response = this.mService.spreadsheets().values().get(spreadsheetId, range).execute();
-            List<List<Object>> values = response.getValues();
-
-            Log.i(TAG, "getValues: " + values.toString());
-
-            if (values != null) {
-                for (List row : values) {
-
-                    //0 - ID / 1 - count / 2 - date / 3 - note / 4 - modified
-                    BatchPOJO selectedBatch = new BatchPOJO();
-                    selectedBatch.setBatchID(row.get(0).toString());
-                    selectedBatch.setImageCount(Integer.valueOf(row.get(1).toString()));
-                    selectedBatch.setUploadDate(row.get(2).toString());
-                    selectedBatch.setNote(row.get(3).toString());
-                    selectedBatch.setLastModifiedDate(row.get(4).toString());
-
-                    listOfBatches.add(selectedBatch);
-                }
-            }
-
-
-
-            for (int i = 0; i < listOfBatches.size(); i++) {
-
-                listOfBatchIDs.add(listOfBatches.get(i).batchID);
-            }
-
-            ACTVadapter.notifyDataSetChanged();
-
-            Log.i(TAG, "list of batches size: " + listOfBatches.size());
-
-            return selectedBatch;
-        }
 
         private String setData(String batchID, int numberOfImages, String dateAdded, String note, String dateModified) throws IOException {
 
@@ -542,7 +469,12 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
             if (output == null) {
                 Log.i(TAG, "No results returned.");
             } else {
+                DatabaseTools dbTools = new DatabaseTools(getContext());
+                dbTools.clearTable();
+
                 Log.i(TAG, "Response: " + output);
+                Log.i(TAG, "Done! Table deleted. " + output);
+
             }
         }
 
