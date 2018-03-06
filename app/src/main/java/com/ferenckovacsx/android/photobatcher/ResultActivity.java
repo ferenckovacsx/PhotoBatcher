@@ -3,6 +3,7 @@ package com.ferenckovacsx.android.photobatcher;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.net.Uri;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -11,11 +12,20 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.ActionMode;
 import android.view.Display;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -24,58 +34,124 @@ public class ResultActivity extends AppCompatActivity
         AddToExistingFragment.OnFragmentInteractionListener,
         AddNewFragment.OnFragmentInteractionListener {
 
-    RecyclerView gridRecyclerView;
-    GridLayoutManager gridLayoutManager;
-    Toolbar toolbar;
-    ImageView submitBatchButton;
+    ImageView  deleteButton, addMoreButton;
+    Boolean isToggled = false;
+    int numberOfSelectedImages = 0;
+    Button submitBatchButton;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
-//        toolbar = findViewById(R.id.my_toolbar);
-//        setSupportActionBar(toolbar);
-
         submitBatchButton = findViewById(R.id.done);
+        deleteButton = findViewById(R.id.delete_button);
+        addMoreButton = findViewById(R.id.add_more_button);
+
+        if (numberOfSelectedImages == 0) {
+            int color = Color.parseColor("#505050");
+            deleteButton.setColorFilter(color);
+            deleteButton.setEnabled(false);
+        }
 
         //get current batch from db and save it to an ArrayList<ImageModel>
-        ArrayList<ImageModel> currentBatch;
+        final ArrayList<ImageModel> currentBatch;
         DatabaseTools databaseTools = new DatabaseTools(ResultActivity.this);
         currentBatch = databaseTools.getCurrentBatch();
 
-//        gridRecyclerView = findViewById(R.id.galleryRecyclerView);
-////        gridRecyclerView.setHasFixedSize(true);
-//        gridLayoutManager = new GridLayoutManager(getApplicationContext(), 3);
-//        gridRecyclerView.setLayoutManager(gridLayoutManager);
-//        GalleryAdapter adapter = new GalleryAdapter(getApplicationContext(), currentBatch, getImageViewSize());
-//        gridRecyclerView.setAdapter(adapter);
+        final ResultGridAdapter adapter = new ResultGridAdapter(ResultActivity.this, currentBatch, getImageViewSize());
+        final GridView gridView = findViewById(R.id.gridview);
 
-        ResultGridAdapter adapter = new ResultGridAdapter(ResultActivity.this, currentBatch, getImageViewSize());
-        GridView gridView = findViewById(R.id.gridview);
+        gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+
+                Log.i("onItemLongClick", "is it checked: " + currentBatch.get(position).isChecked);
+
+                if (!currentBatch.get(position).isChecked) {
+                    currentBatch.get(position).setChecked(true);
+                    numberOfSelectedImages += 1;
+
+//
+//                    for (int i = 0; i < currentBatch.size(); i++) {
+//                        if (currentBatch.get(i).isChecked()) {
+//                        }
+//                    }
+
+                    Log.i("onItemLongClick", "number of selected images: " + numberOfSelectedImages);
+
+                    if (numberOfSelectedImages > 0) {
+                        int color = Color.parseColor("#000000");
+                        deleteButton.setColorFilter(color);
+                        deleteButton.setEnabled(true);
+                    }
+
+                    adapter.notifyDataSetChanged();
+                    Log.i("onItemLongClick", "is it checked: " + currentBatch.get(position).isChecked);
+
+                    return true;
+                }
+                return true;
+
+            }
+        });
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                if (numberOfSelectedImages > 0) {
+
+                    if (currentBatch.get(position).isChecked) {
+                        currentBatch.get(position).setChecked(false);
+                        numberOfSelectedImages -= 1;
+                    } else {
+                        currentBatch.get(position).setChecked(true);
+                        numberOfSelectedImages += 1;
+                    }
+
+                    adapter.notifyDataSetChanged();
+
+
+                    if (numberOfSelectedImages == 0) {
+                        int color = Color.parseColor("#505050");
+                        deleteButton.setColorFilter(color);
+                        deleteButton.setEnabled(false);
+
+                    }
+                }
+            }
+        });
+
         gridView.setAdapter(adapter);
+
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                for (int i = 0; i < currentBatch.size(); i++) {
+                    if (currentBatch.get(i).isChecked()) {
+                        currentBatch.remove(i);
+                    }
+                }
+
+                adapter.notifyDataSetChanged();
+
+                int color = Color.parseColor("#505050");
+                deleteButton.setColorFilter(color);
+                deleteButton.setEnabled(false);
+            }
+        });
+
 
         submitBatchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                SubmitBatchFragment fragment = new SubmitBatchFragment();
-//                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-//                transaction.add(R.id.container, fragment);
-//                transaction.addToBackStack(null);
-//                transaction.commit();
-
 
                 // custom dialog
                 final Dialog dialog = new Dialog(ResultActivity.this);
                 dialog.setContentView(R.layout.custom_dialog);
-
-//                WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-//                lp.copyFrom(dialog.getWindow().getAttributes());
-//                lp.width = WindowManager.LayoutParams.MATCH_PARENT;
-//                lp.height = WindowManager.LayoutParams.MATCH_PARENT;
-//                dialog.show();
-//                dialog.getWindow().setAttributes(lp);
-
 
                 ImageView createNewButton = dialog.findViewById(R.id.create_new_button);
                 ImageView addToExistingButton = dialog.findViewById(R.id.add_to_existing_button);
@@ -86,6 +162,7 @@ public class ResultActivity extends AppCompatActivity
                         AddNewFragment fragment = new AddNewFragment();
                         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                         transaction.add(R.id.container, fragment);
+                        transaction.addToBackStack(null);
                         transaction.commit();
                         dialog.dismiss();
                     }
@@ -105,9 +182,6 @@ public class ResultActivity extends AppCompatActivity
 
                 dialog.show();
 
-//
-//                Intent intent = new Intent(ResultActivity.this, SubmitBatchActivity.class);
-//                startActivity(intent);
             }
         });
 

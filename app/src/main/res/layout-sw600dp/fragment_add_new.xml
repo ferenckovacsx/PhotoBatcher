@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary">
 
     <ImageView
-        android:id="@+id/back_imageview"
+        android:id="@+id/add_new_back_iv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="10dp"
@@ -24,10 +23,10 @@
         android:text="Új tétel létrehozása"
         android:textColor="#000000"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/back_imageview"
+        app:layout_constraintBottom_toBottomOf="@+id/add_new_back_iv"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/back_imageview" />
+        app:layout_constraintTop_toTopOf="@+id/add_new_back_iv" />
 
     <EditText
         android:id="@+id/add_new_name_edittext"
@@ -35,11 +34,11 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="32dp"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="80dp"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/back_imageview" />
+        app:layout_constraintTop_toBottomOf="@+id/add_new_back_iv" />
 
     <TextView
         android:id="@+id/add_new_name_label"

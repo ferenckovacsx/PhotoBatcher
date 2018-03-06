@@ -24,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -54,6 +55,7 @@ import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 import static android.app.Activity.RESULT_OK;
+import static com.ferenckovacsx.android.photobatcher.Utilities.getFormattedDate;
 
 public class AddToExistingFragment extends Fragment implements EasyPermissions.PermissionCallbacks {
 
@@ -61,7 +63,8 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
 
     ProgressDialog mProgress;
     AutoCompleteTextView selectBatchACTV;
-    EditText uploadDateEditText, modifiedEditText, noteEditText;
+    EditText uploadDateEditText, modifiedEditText, imageCountEditText, noteEditText;
+    ImageView backButton;
     Button submitButton;
 
     GoogleAccountCredential mCredential;
@@ -77,7 +80,7 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS};
 
-//    ArrayAdapter<String> ACTVadapter;
+    //    ArrayAdapter<String> ACTVadapter;
     CustomACTVAdapter ACTVadapter;
     ArrayList<String> listOfBatchIDs;
     ArrayList<BatchPOJO> listOfBatches;
@@ -115,14 +118,25 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
         uploadDateEditText = submitBatchView.findViewById(R.id.upload_date_edittext);
         modifiedEditText = submitBatchView.findViewById(R.id.last_modified_date_edittext);
         noteEditText = submitBatchView.findViewById(R.id.add_note_edittext);
+        imageCountEditText = submitBatchView.findViewById(R.id.add_to_existing_image_count_edittext);
+        backButton = submitBatchView.findViewById(R.id.add_to_existing_back_iv);
+
+        final ArrayList<ImageModel> currentBatch;
+        DatabaseTools databaseTools = new DatabaseTools(getContext());
+        currentBatch = databaseTools.getCurrentBatch();
+
+        imageCountEditText.setText(String.valueOf(currentBatch.size()));
 
         selectBatchACTV.setFocusable(false);
         uploadDateEditText.setClickable(false);
         uploadDateEditText.setFocusable(false);
         uploadDateEditText.setFocusableInTouchMode(false);
+
         modifiedEditText.setClickable(false);
         modifiedEditText.setFocusable(false);
         modifiedEditText.setFocusableInTouchMode(false);
+
+
 
         mProgress = new ProgressDialog(getContext());
         mProgress.setMessage("Adatok lekérdezése...");
@@ -154,6 +168,14 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
                 modifiedEditText.setText(ACTVadapter.getItem(position).lastModifiedDate);
 
                 Toast.makeText(getContext(), ACTVadapter.getItem(position).batchID, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "back onclick");
+                getActivity().onBackPressed();
             }
         });
 
@@ -419,15 +441,15 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
         protected String doInBackground(Void... params) {
             try {
 
-                Date c = Calendar.getInstance().getTime();
-
-                SimpleDateFormat df = new SimpleDateFormat("yyyy.MM.dd, HH:mm:ss", Locale.ENGLISH);
-                String formattedDate = df.format(c);
-                String name = String.valueOf(System.currentTimeMillis());
+                String batchName = selectBatchACTV.getText().toString();
+                int imageCount = Integer.parseInt(imageCountEditText.getText().toString());
+                String uploadDate = getFormattedDate();
+                String originalUploadDate = uploadDateEditText.getText().toString();
+                String note = noteEditText.getText().toString();
 
                 getDataFromApi();
 
-                return setData(name, 8, formattedDate, "Nincs megjegyzés", "");
+                return setData(batchName, imageCount, originalUploadDate, note, uploadDate);
             } catch (Exception e) {
                 mLastError = e;
                 cancel(true);
@@ -449,11 +471,12 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
 //            BatchPOJO selectedBatch = new BatchPOJO();
 
             String spreadsheetId = "1EjMmkgbJVtekL0j8JTtmFdYAIO38kRzA_27IAznaOE0";
-            String range = "A2:E19";
+            String range = "A2:E";
 
             List<String> results = new ArrayList<>();
 
             ValueRange response = this.mService.spreadsheets().values().get(spreadsheetId, range).execute();
+
             List<List<Object>> values = response.getValues();
 
             Log.i(TAG, "getValues: " + values.toString());
@@ -463,11 +486,65 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
 
                     //0 - ID / 1 - count / 2 - date / 3 - note / 4 - modified
                     BatchPOJO selectedBatch = new BatchPOJO();
-                    selectedBatch.setBatchID(row.get(0).toString());
-                    selectedBatch.setImageCount(Integer.valueOf(row.get(1).toString()));
-                    selectedBatch.setUploadDate(row.get(2).toString());
-                    selectedBatch.setNote(row.get(3).toString());
+
+                    try {
+                        selectedBatch.setBatchID(row.get(0).toString());
+                    } catch (Exception e){
+                        Log.i(TAG, "batchID Eexception");
+                    }
+
+                    try {
+                        selectedBatch.setImageCount(Integer.valueOf(row.get(1).toString()));
+                    } catch (Exception e){
+                        Log.i(TAG, "count Eexception");
+                    }
+
+                    try {
+                        selectedBatch.setUploadDate(row.get(2).toString());
+                    } catch (Exception e){
+                        Log.i(TAG, "uploaddate Eexception");
+                    }
+
+                    try {
+                        selectedBatch.setNote(row.get(3).toString());
+                    } catch (Exception e){
+                        Log.i(TAG, "note Eexception");
+                    }
+
+                    try {
                     selectedBatch.setLastModifiedDate(row.get(4).toString());
+                    } catch (Exception e){
+                        Log.i(TAG, "lastmod Eexception");
+                    }
+
+
+
+
+
+
+//                    if (!row.get(0).toString().equals(null)){
+//                        selectedBatch.setBatchID(row.get(0).toString());
+//                    }
+//                    if (!row.get(1).toString().equals(null)){
+//                        selectedBatch.setImageCount(Integer.valueOf(row.get(1).toString()));
+//                    }
+//                    if (!row.get(2).toString().equals(null)){
+//                        selectedBatch.setUploadDate(row.get(2).toString());
+//                    }
+//                    if (!row.get(3).toString().isEmpty()){
+//                        selectedBatch.setNote(row.get(3).toString());
+//                    }
+//
+//                    if (!row.get(4).toString().isEmpty()){
+//                        selectedBatch.setNote(row.get(4).toString());
+//                    }
+
+//
+//                    selectedBatch.setBatchID(row.get(0).toString());
+//                    selectedBatch.setImageCount(Integer.valueOf(row.get(1).toString()));
+//                    selectedBatch.setUploadDate(row.get(2).toString());
+//                    selectedBatch.setNote(row.get(3).toString());
+//                    selectedBatch.setLastModifiedDate(row.get(4).toString());
 
                     listOfBatches.add(selectedBatch);
                 }
@@ -496,7 +573,7 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
             String range = "A:E";
 
             // How the input data should be interpreted.
-            String valueInputOption = "RAW";
+            String valueInputOption = "USER_ENTERED";
 
             // How the input data should be inserted.
             String insertDataOption = "";

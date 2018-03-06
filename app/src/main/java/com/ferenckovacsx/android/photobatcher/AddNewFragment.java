@@ -111,7 +111,7 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
         uploadDateEditText = submitBatchView.findViewById(R.id.add_new_upload_dateedittext);
         imageCountEditText = submitBatchView.findViewById(R.id.add_new_image_count_edittext);
         noteEditText = submitBatchView.findViewById(R.id.add_new_note_edittext);
-        backButton = submitBatchView.findViewById(R.id.back_imageview);
+        backButton = submitBatchView.findViewById(R.id.add_new_back_iv);
         backButtonTV = submitBatchView.findViewById(R.id.back_textview);
 
         batchNameEditText.setText(generateBatchName("BATCH"));
@@ -124,10 +124,18 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
         uploadDateEditText.setFocusable(false);
         uploadDateEditText.setFocusableInTouchMode(false);
 
-        imageCountEditText.setText(String.valueOf(25));
+        final ArrayList<ImageModel> currentBatch;
+        DatabaseTools databaseTools = new DatabaseTools(getContext());
+        currentBatch = databaseTools.getCurrentBatch();
+
+        imageCountEditText.setText(String.valueOf(currentBatch.size()));
         imageCountEditText.setClickable(false);
         imageCountEditText.setFocusable(false);
         imageCountEditText.setFocusableInTouchMode(false);
+
+        noteEditText.setClickable(true);
+        noteEditText.setFocusable(true);
+        noteEditText.setFocusableInTouchMode(true);
 
         mProgress = new ProgressDialog(getContext());
         mProgress.setMessage("Adatok feltöltése...");
@@ -143,6 +151,14 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
             @Override
             public void onClick(View v) {
                 getResultsFromApi();
+            }
+        });
+
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(TAG, "back onclick");
+                getActivity().onBackPressed();
             }
         });
 

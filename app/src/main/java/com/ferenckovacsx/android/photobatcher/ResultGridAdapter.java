@@ -2,10 +2,14 @@ package com.ferenckovacsx.android.photobatcher;
 
 import android.content.Context;
 import android.net.Uri;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -24,9 +28,8 @@ public class ResultGridAdapter extends BaseAdapter {
     private Context context;
     private ArrayList<ImageModel> dataSet;
     static int cardImageViewSize;
-
     ImageView galleryImageView;
-    TextView galleryTextView;
+    FrameLayout overlay;
 
     private static class ViewHolder {
 
@@ -77,7 +80,7 @@ public class ResultGridAdapter extends BaseAdapter {
         }
 
         galleryImageView = gridView.findViewById(R.id.gallery_item_imageview);
-        galleryTextView = gridView.findViewById(R.id.gallery_item_textview);
+        overlay = gridView.findViewById(R.id.grid_item_overlay);
 
         android.view.ViewGroup.LayoutParams layoutParams = galleryImageView.getLayoutParams();
         layoutParams.width = cardImageViewSize;
@@ -85,8 +88,13 @@ public class ResultGridAdapter extends BaseAdapter {
         galleryImageView.setLayoutParams(layoutParams);
         galleryImageView.requestLayout();
 
-
-        galleryTextView.setText(dataSet.get(position).getImageName());
+        if (dataSet.get(position).isChecked()) {
+            galleryImageView.setPadding(15, 15, 15, 15);
+            overlay.setForeground(ContextCompat.getDrawable(context, R.drawable.grid_item_overlay));
+        } else {
+            galleryImageView.setPadding(0, 0, 0, 0);
+            overlay.setForeground(null);
+        }
 
         Uri uri = Uri.fromFile(new File(dataSet.get(position).getImagePath()));
         Picasso.with(context).load(uri).into(galleryImageView);
