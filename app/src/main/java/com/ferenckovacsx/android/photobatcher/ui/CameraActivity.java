@@ -1,12 +1,10 @@
-package com.ferenckovacsx.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher.ui;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
@@ -36,9 +34,14 @@ import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.ferenckovacsx.android.photobatcher.R;
+import com.ferenckovacsx.android.photobatcher.tools.DatabaseTools;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,10 +54,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import static android.os.Environment.DIRECTORY_PICTURES;
-import static com.ferenckovacsx.android.photobatcher.Utilities.generateBatchName;
+import static com.ferenckovacsx.android.photobatcher.tools.Utilities.generateBatchName;
 
-public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
+public class CameraActivity extends AppCompatActivity {
+    private static final String TAG = "CameraActivity";
     private TextView counterTextView;
     private TextureView textureView;
     private ImageView captureThumbnail, captureButton, doneButton, counterImageBackground;
@@ -88,7 +91,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_camera);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         textureView = findViewById(R.id.texture);
         assert textureView != null;
         counterTextView = findViewById(R.id.counter_textview);
@@ -100,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
 
         assert captureButton != null;
 
-        databaseTools = new DatabaseTools(MainActivity.this);
+        databaseTools = new DatabaseTools(CameraActivity.this);
 
         captureButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -117,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                Intent intent = new Intent(MainActivity.this, ResultActivity.class);
+                Intent intent = new Intent(CameraActivity.this, GalleryActivity.class);
                 startActivity(intent);
 
             }
@@ -133,6 +139,10 @@ public class MainActivity extends AppCompatActivity {
                 if (event == FileObserver.CREATE) {
 
                     final String filePath = Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES) + "/" + file;
+
+                    Log.e("FILEOBSERVER", "FileName: " + file);
+                    Log.e("FILEOBSERVER", "FilePath: " + filePath);
+
 
                     //add new image to batch database
                     databaseTools.insertNewScore(file, filePath);
@@ -152,8 +162,11 @@ public class MainActivity extends AppCompatActivity {
                             captureButton.setEnabled(true);
 
                             //replace thumbnail with new image
-                            Bitmap bmImg = BitmapFactory.decodeFile(filePath);
-                            captureThumbnail.setImageBitmap(bmImg);
+//                            Bitmap bmImg = BitmapFactory.decodeFile(filePath);
+//                            captureThumbnail.setImageBitmap(bmImg);
+
+                            Uri uri = Uri.fromFile(new File(filePath));
+                            Picasso.with(CameraActivity.this).load(uri).into(captureThumbnail);
 
                             //make done button and counter visible
                             imageCount += 1;
@@ -218,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
             super.onCaptureCompleted(session, request, result);
-            Toast.makeText(MainActivity.this, "Saved:" + file, Toast.LENGTH_SHORT).show();
+            Toast.makeText(CameraActivity.this, "Saved:" + file, Toast.LENGTH_SHORT).show();
             createCameraPreview();
         }
     };
@@ -380,7 +393,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    Toast.makeText(MainActivity.this, "Configuration change", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CameraActivity.this, "Configuration change", Toast.LENGTH_SHORT).show();
                 }
             }, null);
         } catch (CameraAccessException e) {
@@ -399,7 +412,7 @@ public class MainActivity extends AppCompatActivity {
             imageDimension = map.getOutputSizes(SurfaceTexture.class)[0];
             // Add permission for camera and let user grant the permission
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
+                ActivityCompat.requestPermissions(CameraActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
                 return;
             }
             manager.openCamera(cameraId, stateCallback, null);
@@ -437,7 +450,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
                 // close the app
-                Toast.makeText(MainActivity.this, "Sorry!!!, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
+                Toast.makeText(CameraActivity.this, "Sorry!!!, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
                 finish();
             }
         }

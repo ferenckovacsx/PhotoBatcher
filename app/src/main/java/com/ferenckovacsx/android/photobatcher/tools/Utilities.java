@@ -1,4 +1,4 @@
-package com.ferenckovacsx.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher.tools;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -11,13 +11,13 @@ import java.util.Locale;
 
 public class Utilities {
 
-    static String getFormattedDate() {
+    public static String getFormattedDate() {
         Date c = Calendar.getInstance().getTime();
         SimpleDateFormat df = new SimpleDateFormat("yyyy.MM.dd, HH:mm:ss", Locale.ENGLISH);
         return df.format(c);
     }
 
-    static String generateBatchName(String type) {
+    public static String generateBatchName(String type) {
         Date c = Calendar.getInstance().getTime();
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_HHmm", Locale.ENGLISH);
 

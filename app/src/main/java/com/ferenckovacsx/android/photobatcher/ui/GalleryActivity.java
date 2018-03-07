@@ -1,48 +1,46 @@
-package com.ferenckovacsx.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher.ui;
 
 import android.app.Dialog;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.ActionMode;
 import android.view.Display;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.TextView;
+
+import com.ferenckovacsx.android.photobatcher.tools.DatabaseTools;
+import com.ferenckovacsx.android.photobatcher.pojo.ImagePOJO;
+import com.ferenckovacsx.android.photobatcher.R;
+import com.ferenckovacsx.android.photobatcher.tools.ResultGridAdapter;
 
 import java.util.ArrayList;
 
-public class ResultActivity extends AppCompatActivity
+public class GalleryActivity extends AppCompatActivity
         implements
         AddToExistingFragment.OnFragmentInteractionListener,
-        AddNewFragment.OnFragmentInteractionListener {
+        AddNewFragment.OnFragmentInteractionListener,
+        ScrollableFragment.OnFragmentInteractionListener {
 
-    ImageView  deleteButton, addMoreButton;
-    Boolean isToggled = false;
+    final String TAG = "GALLERY";
+
+    ImageView deleteButton, addMoreButton;
     int numberOfSelectedImages = 0;
     Button submitBatchButton;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_result);
+        setContentView(R.layout.activity_gallery);
 
         submitBatchButton = findViewById(R.id.done);
         deleteButton = findViewById(R.id.delete_button);
@@ -54,12 +52,12 @@ public class ResultActivity extends AppCompatActivity
             deleteButton.setEnabled(false);
         }
 
-        //get current batch from db and save it to an ArrayList<ImageModel>
-        final ArrayList<ImageModel> currentBatch;
-        DatabaseTools databaseTools = new DatabaseTools(ResultActivity.this);
+        //get current batch from db and save it to an ArrayList<ImagePOJO>
+        final ArrayList<ImagePOJO> currentBatch;
+        final DatabaseTools databaseTools = new DatabaseTools(GalleryActivity.this);
         currentBatch = databaseTools.getCurrentBatch();
 
-        final ResultGridAdapter adapter = new ResultGridAdapter(ResultActivity.this, currentBatch, getImageViewSize());
+        final ResultGridAdapter adapter = new ResultGridAdapter(GalleryActivity.this, currentBatch, getImageViewSize());
         final GridView gridView = findViewById(R.id.gridview);
 
         gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -101,26 +99,42 @@ public class ResultActivity extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                if (numberOfSelectedImages > 0) {
+                String filePath = currentBatch.get(position).getImagePath();
 
-                    if (currentBatch.get(position).isChecked) {
-                        currentBatch.get(position).setChecked(false);
-                        numberOfSelectedImages -= 1;
-                    } else {
-                        currentBatch.get(position).setChecked(true);
-                        numberOfSelectedImages += 1;
-                    }
+                Log.i(TAG, "onItemCLick filepath: " + filePath);
 
-                    adapter.notifyDataSetChanged();
+                ScrollableFragment scrollableFragment = new ScrollableFragment();
+                Bundle bundle = new Bundle();
+                bundle.putString("filepath", filePath);
+                scrollableFragment.setArguments(bundle);
+
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.add(R.id.container, scrollableFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
 
 
-                    if (numberOfSelectedImages == 0) {
-                        int color = Color.parseColor("#505050");
-                        deleteButton.setColorFilter(color);
-                        deleteButton.setEnabled(false);
-
-                    }
-                }
+//
+//                if (numberOfSelectedImages > 0) {
+//
+//                    if (currentBatch.get(position).isChecked) {
+//                        currentBatch.get(position).setChecked(false);
+//                        numberOfSelectedImages -= 1;
+//                    } else {
+//                        currentBatch.get(position).setChecked(true);
+//                        numberOfSelectedImages += 1;
+//                    }
+//
+//                    adapter.notifyDataSetChanged();
+//
+//
+//                    if (numberOfSelectedImages == 0) {
+//                        int color = Color.parseColor("#505050");
+//                        deleteButton.setColorFilter(color);
+//                        deleteButton.setEnabled(false);
+//
+//                    }
+//                }
             }
         });
 
@@ -130,11 +144,20 @@ public class ResultActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 
+                ArrayList<ImagePOJO> listOfPojo;
+                listOfPojo = databaseTools.getCurrentBatch();
+                Log.i(TAG, "listOfPOJO BEFORE: " + listOfPojo.size());
+                Log.i(TAG, "listOfPOJO BEFORE: " + listOfPojo.toString());
+
                 for (int i = 0; i < currentBatch.size(); i++) {
                     if (currentBatch.get(i).isChecked()) {
                         currentBatch.remove(i);
+                        databaseTools.clearEntry(currentBatch.get(i).getImageName(), currentBatch.get(i).getImagePath());
                     }
                 }
+
+                listOfPojo = databaseTools.getCurrentBatch();
+                Log.i(TAG, "listOfPOJO AFTER: " + listOfPojo.size());
 
                 adapter.notifyDataSetChanged();
 
@@ -150,11 +173,12 @@ public class ResultActivity extends AppCompatActivity
             public void onClick(View v) {
 
                 // custom dialog
-                final Dialog dialog = new Dialog(ResultActivity.this);
-                dialog.setContentView(R.layout.custom_dialog);
+                final Dialog dialog = new Dialog(GalleryActivity.this);
+                dialog.setContentView(R.layout.dialog_select_mode);
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-                ImageView createNewButton = dialog.findViewById(R.id.create_new_button);
-                ImageView addToExistingButton = dialog.findViewById(R.id.add_to_existing_button);
+                TextView createNewButton = dialog.findViewById(R.id.create_new_button);
+                TextView addToExistingButton = dialog.findViewById(R.id.add_to_existing_button);
 
                 createNewButton.setOnClickListener(new View.OnClickListener() {
                     @Override

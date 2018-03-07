@@ -1,27 +1,27 @@
-package com.ferenckovacsx.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher.pojo;
 
 /**
  * Created by ferenckovacsx on 2018-02-23.
  */
 
-public class ImageModel {
+public class ImagePOJO {
 
-    String imagePath;
-    String imageName;
-    boolean isChecked;
+    public String imagePath;
+    public String imageName;
+    public boolean isChecked;
 
-    public ImageModel(String imagePath, String imageName) {
+    public ImagePOJO(String imagePath, String imageName) {
         this.imagePath = imagePath;
         this.imageName = imageName;
     }
 
-    public ImageModel(String imagePath, String imageName, boolean isChecked) {
+    public ImagePOJO(String imagePath, String imageName, boolean isChecked) {
         this.imagePath = imagePath;
         this.imageName = imageName;
         this.isChecked = isChecked;
     }
 
-    public ImageModel(){
+    public ImagePOJO(){
 
     }
 

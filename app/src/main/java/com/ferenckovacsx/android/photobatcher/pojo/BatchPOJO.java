@@ -1,4 +1,4 @@
-package com.ferenckovacsx.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher.pojo;
 
 /**
  * Created by ferenckovacsx on 2018-03-04.
@@ -6,11 +6,11 @@ package com.ferenckovacsx.android.photobatcher;
 
 public class BatchPOJO {
 
-    String batchID;
-    String uploadDate;
-    String lastModifiedDate;
-    String note;
-    int imageCount;
+    public String batchID;
+    public String uploadDate;
+    public String lastModifiedDate;
+    public String note;
+    public int imageCount;
 
     public BatchPOJO() {
     }

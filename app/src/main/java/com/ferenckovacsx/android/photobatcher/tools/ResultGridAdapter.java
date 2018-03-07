@@ -1,10 +1,8 @@
-package com.ferenckovacsx.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher.tools;
 
 import android.content.Context;
 import android.net.Uri;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +10,9 @@ import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.TextView;
 
+import com.ferenckovacsx.android.photobatcher.pojo.ImagePOJO;
+import com.ferenckovacsx.android.photobatcher.R;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -26,7 +25,7 @@ import java.util.ArrayList;
 public class ResultGridAdapter extends BaseAdapter {
 
     private Context context;
-    private ArrayList<ImageModel> dataSet;
+    private ArrayList<ImagePOJO> dataSet;
     static int cardImageViewSize;
     ImageView galleryImageView;
     FrameLayout overlay;
@@ -36,7 +35,7 @@ public class ResultGridAdapter extends BaseAdapter {
 
     }
 
-    public ResultGridAdapter(Context context, ArrayList<ImageModel> dataSet, int cardImageViewSize) {
+    public ResultGridAdapter(Context context, ArrayList<ImagePOJO> dataSet, int cardImageViewSize) {
         this.context = context;
         this.dataSet = dataSet;
         ResultGridAdapter.cardImageViewSize = cardImageViewSize;

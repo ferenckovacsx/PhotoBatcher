@@ -1,16 +1,18 @@
-package com.ferenckovacsx.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher.tools;
 
 /**
  * Created by ferenckovacsx on 2018-03-04.
  */
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import com.ferenckovacsx.android.photobatcher.pojo.BatchPOJO;
+import com.ferenckovacsx.android.photobatcher.R;
 
 import java.util.ArrayList;
 

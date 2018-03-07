@@ -1,4 +1,4 @@
-package com.ferenckovacsx.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher.tools;
 
 /**
  * Created by ferenckovacsx on 2018-02-23.
@@ -11,6 +11,8 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.ferenckovacsx.android.photobatcher.pojo.ImagePOJO;
 
 import java.util.ArrayList;
 
@@ -31,7 +33,7 @@ public class DatabaseTools extends SQLiteOpenHelper {
 
     Context context;
 
-    DatabaseTools(Context context) {
+    public DatabaseTools(Context context) {
 
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         Log.e("DBTOOLS", "constructor called");
@@ -51,7 +53,7 @@ public class DatabaseTools extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
 
-    void insertNewScore(String name, String filePath) {
+    public void insertNewScore(String name, String filePath) {
 
         Log.e("DBTOOLS", "new score inserted");
 
@@ -69,8 +71,8 @@ public class DatabaseTools extends SQLiteOpenHelper {
         }
     }
 
-    ArrayList<ImageModel> getCurrentBatch() {
-        ArrayList<ImageModel> scoreEntryList = new ArrayList<>();
+    public ArrayList<ImagePOJO> getCurrentBatch() {
+        ArrayList<ImagePOJO> scoreEntryList = new ArrayList<>();
         String selectQuery = "SELECT  * FROM " + DATABASE_NAME;
 
         SQLiteDatabase db = this.getWritableDatabase();
@@ -78,7 +80,7 @@ public class DatabaseTools extends SQLiteOpenHelper {
 
         if (cursor.moveToFirst()) {
             do {
-                ImageModel scoreEntry = new ImageModel();
+                ImagePOJO scoreEntry = new ImagePOJO();
                 scoreEntry.setImageName(cursor.getString(0));
                 scoreEntry.setImagePath(cursor.getString(1));
                 scoreEntryList.add(scoreEntry);
@@ -92,10 +94,13 @@ public class DatabaseTools extends SQLiteOpenHelper {
         return scoreEntryList;
     }
 
-    void clearTable() {
+    public void clearTable() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM " + DATABASE_NAME);
     }
 
-
+    public void clearEntry(String fileName, String filePath) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(DATABASE_NAME, COLUMN_IMAGE_NAME + "=? and "+ COLUMN_IMAGE_PATH + "=?", new String[]{fileName, filePath});
+    }
 }

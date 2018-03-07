@@ -1,4 +1,4 @@
-package com.ferenckovacsx.android.photobatcher;
+package com.ferenckovacsx.android.photobatcher.ui;
 
 import android.Manifest;
 import android.accounts.AccountManager;
@@ -7,6 +7,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -14,6 +16,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +26,11 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.ferenckovacsx.android.photobatcher.pojo.BatchPOJO;
+import com.ferenckovacsx.android.photobatcher.pojo.ImagePOJO;
+import com.ferenckovacsx.android.photobatcher.tools.CustomACTVAdapter;
+import com.ferenckovacsx.android.photobatcher.tools.DatabaseTools;
+import com.ferenckovacsx.android.photobatcher.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -47,8 +55,8 @@ import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 import static android.app.Activity.RESULT_OK;
-import static com.ferenckovacsx.android.photobatcher.Utilities.generateBatchName;
-import static com.ferenckovacsx.android.photobatcher.Utilities.getFormattedDate;
+import static com.ferenckovacsx.android.photobatcher.tools.Utilities.generateBatchName;
+import static com.ferenckovacsx.android.photobatcher.tools.Utilities.getFormattedDate;
 
 public class AddNewFragment extends Fragment implements EasyPermissions.PermissionCallbacks {
 
@@ -124,7 +132,7 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
         uploadDateEditText.setFocusable(false);
         uploadDateEditText.setFocusableInTouchMode(false);
 
-        final ArrayList<ImageModel> currentBatch;
+        final ArrayList<ImagePOJO> currentBatch;
         DatabaseTools databaseTools = new DatabaseTools(getContext());
         currentBatch = databaseTools.getCurrentBatch();
 
@@ -486,11 +494,27 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
                 Log.i(TAG, "No results returned.");
             } else {
                 DatabaseTools dbTools = new DatabaseTools(getContext());
-                dbTools.clearTable();
+                dbTools.clearTable(); 
 
-                Log.i(TAG, "Response: " + output);
-                Log.i(TAG, "Done! Table deleted. " + output);
+                // custom dialog
+                final Dialog dialog = new Dialog(getContext());
+                dialog.setContentView(R.layout.dialog_success);
+                dialog.setCancelable(false);
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
+                Button okButton = dialog.findViewById(R.id.ok_button);
+
+                okButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        Intent mainActivityIntent = new Intent(getContext(), MainActivity.class);
+                        startActivity(mainActivityIntent);
+                        getActivity().finish();
+                    }
+                });
+
+                dialog.show();
             }
         }
 
