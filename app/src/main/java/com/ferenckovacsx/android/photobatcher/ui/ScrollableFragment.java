@@ -21,7 +21,7 @@ public class ScrollableFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    ImageView backButton, imageView;
+    ImageView closeButton, imageView;
     String imageFilePath;
 
     public ScrollableFragment() {
@@ -43,12 +43,21 @@ public class ScrollableFragment extends Fragment {
         View scrollableView = inflater.inflate(R.layout.fragment_scrollable, container, false);
 
         imageView = scrollableView.findViewById(R.id.touch_image_view);
+        closeButton = scrollableView.findViewById(R.id.touch_close_button);
 
         Log.i(TAG, "onItemCLick filepath: " + imageFilePath);
 
 
         Uri uri = Uri.fromFile(new File(imageFilePath));
         Picasso.with(getContext()).load(uri).into(imageView);
+
+
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
 
         return scrollableView;
     }

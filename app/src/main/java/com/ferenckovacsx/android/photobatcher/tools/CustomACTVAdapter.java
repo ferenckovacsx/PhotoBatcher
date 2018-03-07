@@ -18,7 +18,7 @@ import java.util.ArrayList;
 
 public class CustomACTVAdapter extends ArrayAdapter<BatchPOJO> {
 
-    final String TAG = "AutocompleteCustomArrayAdapter.java";
+    final String TAG = "ACTVADAPTER";
 
     Context mContext;
     int layoutResourceId;
@@ -48,7 +48,7 @@ public class CustomACTVAdapter extends ArrayAdapter<BatchPOJO> {
             BatchPOJO objectItem = data.get(position);
 
             // get the TextView and then set the text (item name) and tag (item ID) values
-            TextView textViewItem = convertView.findViewById(R.id.textViewItem);
+            TextView textViewItem = convertView.findViewById(R.id.actv_item_textview);
             textViewItem.setText(objectItem.batchID);
 
 

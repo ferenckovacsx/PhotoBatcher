@@ -23,6 +23,7 @@ import com.ferenckovacsx.android.photobatcher.pojo.ImagePOJO;
 import com.ferenckovacsx.android.photobatcher.R;
 import com.ferenckovacsx.android.photobatcher.tools.ResultGridAdapter;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class GalleryActivity extends AppCompatActivity
@@ -99,42 +100,40 @@ public class GalleryActivity extends AppCompatActivity
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                String filePath = currentBatch.get(position).getImagePath();
+                if (numberOfSelectedImages > 0) {
 
-                Log.i(TAG, "onItemCLick filepath: " + filePath);
+                    if (currentBatch.get(position).isChecked) {
+                        currentBatch.get(position).setChecked(false);
+                        numberOfSelectedImages -= 1;
+                    } else {
+                        currentBatch.get(position).setChecked(true);
+                        numberOfSelectedImages += 1;
+                    }
 
-                ScrollableFragment scrollableFragment = new ScrollableFragment();
-                Bundle bundle = new Bundle();
-                bundle.putString("filepath", filePath);
-                scrollableFragment.setArguments(bundle);
-
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.add(R.id.container, scrollableFragment);
-                transaction.addToBackStack(null);
-                transaction.commit();
+                    adapter.notifyDataSetChanged();
 
 
-//
-//                if (numberOfSelectedImages > 0) {
-//
-//                    if (currentBatch.get(position).isChecked) {
-//                        currentBatch.get(position).setChecked(false);
-//                        numberOfSelectedImages -= 1;
-//                    } else {
-//                        currentBatch.get(position).setChecked(true);
-//                        numberOfSelectedImages += 1;
-//                    }
-//
-//                    adapter.notifyDataSetChanged();
-//
-//
-//                    if (numberOfSelectedImages == 0) {
-//                        int color = Color.parseColor("#505050");
-//                        deleteButton.setColorFilter(color);
-//                        deleteButton.setEnabled(false);
-//
-//                    }
-//                }
+                    if (numberOfSelectedImages == 0) {
+                        int color = Color.parseColor("#505050");
+                        deleteButton.setColorFilter(color);
+                        deleteButton.setEnabled(false);
+
+                    }
+                } else {
+                    String filePath = currentBatch.get(position).getImagePath();
+
+                    Log.i(TAG, "onItemCLick filepath: " + filePath);
+
+                    ScrollableFragment scrollableFragment = new ScrollableFragment();
+                    Bundle bundle = new Bundle();
+                    bundle.putString("filepath", filePath);
+                    scrollableFragment.setArguments(bundle);
+
+                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    transaction.add(R.id.container, scrollableFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                }
             }
         });
 
@@ -151,8 +150,12 @@ public class GalleryActivity extends AppCompatActivity
 
                 for (int i = 0; i < currentBatch.size(); i++) {
                     if (currentBatch.get(i).isChecked()) {
-                        currentBatch.remove(i);
                         databaseTools.clearEntry(currentBatch.get(i).getImageName(), currentBatch.get(i).getImagePath());
+
+                        File fileToDelete = new File(currentBatch.get(i).getImagePath());
+                        fileToDelete.delete();
+                        currentBatch.remove(i);
+
                     }
                 }
 
@@ -160,6 +163,10 @@ public class GalleryActivity extends AppCompatActivity
                 Log.i(TAG, "listOfPOJO AFTER: " + listOfPojo.size());
 
                 adapter.notifyDataSetChanged();
+
+                if (currentBatch.size() < 1){
+                    submitBatchButton.setEnabled(false);
+                }
 
                 int color = Color.parseColor("#505050");
                 deleteButton.setColorFilter(color);
@@ -206,6 +213,13 @@ public class GalleryActivity extends AppCompatActivity
 
                 dialog.show();
 
+            }
+        });
+
+        addMoreButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
             }
         });
 

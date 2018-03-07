@@ -1,5 +1,7 @@
 package com.ferenckovacsx.android.photobatcher.tools;
 
+import android.content.Context;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -17,12 +19,12 @@ public class Utilities {
         return df.format(c);
     }
 
-    public static String generateBatchName(String type) {
+    public static String generateName(String type) {
         Date c = Calendar.getInstance().getTime();
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_HHmm", Locale.ENGLISH);
+        SimpleDateFormat df = new SimpleDateFormat("yyMMdd_", Locale.ENGLISH);
 
         if (type.equals("IMG")) {
-            df = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH);
+            df = new SimpleDateFormat("yyMMdd_HHmmss", Locale.ENGLISH);
             return "IMG_" + df.format(c);
         } else return "Batch_" + df.format(c);
     }

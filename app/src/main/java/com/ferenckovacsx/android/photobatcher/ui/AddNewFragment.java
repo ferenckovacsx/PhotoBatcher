@@ -16,7 +16,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,7 +54,7 @@ import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 import static android.app.Activity.RESULT_OK;
-import static com.ferenckovacsx.android.photobatcher.tools.Utilities.generateBatchName;
+import static com.ferenckovacsx.android.photobatcher.tools.Utilities.generateName;
 import static com.ferenckovacsx.android.photobatcher.tools.Utilities.getFormattedDate;
 
 public class AddNewFragment extends Fragment implements EasyPermissions.PermissionCallbacks {
@@ -70,7 +69,7 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
 
     GoogleAccountCredential mCredential;
 
-    final String TAG = "ADDtoEXISTING";
+    final String TAG = "ADDNEWFRAGMENT";
 
     static final int REQUEST_ACCOUNT_PICKER = 1000;
     static final int REQUEST_AUTHORIZATION = 1001;
@@ -88,13 +87,6 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
     BatchPOJO selectedBatch;
 
     public AddNewFragment() {
-    }
-
-
-    public static AddToExistingFragment newInstance(String param1, String param2) {
-        AddToExistingFragment fragment = new AddToExistingFragment();
-
-        return fragment;
     }
 
     @Override
@@ -122,7 +114,12 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
         backButton = submitBatchView.findViewById(R.id.add_new_back_iv);
         backButtonTV = submitBatchView.findViewById(R.id.back_textview);
 
-        batchNameEditText.setText(generateBatchName("BATCH"));
+        SharedPreferences pref = getActivity().getSharedPreferences("counterPref", Context.MODE_PRIVATE);
+        String batchName = pref.getString("batchName", "");
+
+        Log.i(TAG, "fileDir from PREF: " + batchName);
+
+        batchNameEditText.setText(batchName);
         batchNameEditText.setClickable(false);
         batchNameEditText.setFocusable(false);
         batchNameEditText.setFocusableInTouchMode(false);
@@ -449,9 +446,6 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
             // How the input data should be interpreted.
             String valueInputOption = "RAW";
 
-            // How the input data should be inserted.
-            String insertDataOption = "";
-
             //for the values that you want to input, create a list of object lists
             List<List<Object>> rowToAppend = new ArrayList<>();
 
@@ -494,7 +488,16 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
                 Log.i(TAG, "No results returned.");
             } else {
                 DatabaseTools dbTools = new DatabaseTools(getContext());
-                dbTools.clearTable(); 
+                dbTools.clearTable();
+
+                SharedPreferences counterPref = getActivity().getSharedPreferences("counterPref", Context.MODE_PRIVATE);
+                int count = counterPref.getInt("count", 0);
+
+                count++;
+
+                SharedPreferences.Editor edit = counterPref.edit();
+                edit.putInt("count", count);
+                edit.apply();
 
                 // custom dialog
                 final Dialog dialog = new Dialog(getContext());

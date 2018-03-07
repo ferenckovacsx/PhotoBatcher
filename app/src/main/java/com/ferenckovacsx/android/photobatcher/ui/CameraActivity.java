@@ -49,12 +49,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import static android.os.Environment.DIRECTORY_PICTURES;
-import static com.ferenckovacsx.android.photobatcher.tools.Utilities.generateBatchName;
+import static com.ferenckovacsx.android.photobatcher.tools.Utilities.generateName;
 
 public class CameraActivity extends AppCompatActivity {
     private static final String TAG = "CameraActivity";
@@ -78,11 +82,13 @@ public class CameraActivity extends AppCompatActivity {
     private Size imageDimension;
     private ImageReader imageReader;
     private File file;
-    private static final int REQUEST_CAMERA_PERMISSION = 200;
     private boolean mFlashSupported;
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
 
+    SharedPreferences counterPref;
+    String fileDirectory, filePath;
+    int filePathPlaceHolderNumber;
     int imageCount = 0;
     FileObserver fileObserver;
     DatabaseTools databaseTools;
@@ -108,12 +114,30 @@ public class CameraActivity extends AppCompatActivity {
 
         databaseTools = new DatabaseTools(CameraActivity.this);
 
+        counterPref = getSharedPreferences("counterPref", MODE_PRIVATE);
+        filePathPlaceHolderNumber = counterPref.getInt("count", 1);
+
+        Log.i(TAG, "onCreate count: " + filePathPlaceHolderNumber);
+
         captureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
+                int color = Color.parseColor("#505050");
+                captureButton.setColorFilter(color);
+                captureButton.setEnabled(false);
+
                 takePicture();
 
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        int color = Color.parseColor("#000000");
+                        captureButton.setColorFilter(color);
+                        captureButton.setEnabled(true);
+                    }
+                }, 1000);
 
             }
         });
@@ -129,59 +153,6 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
 
-
-        fileObserver = new FileObserver(Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES).toString()) {
-            @Override
-            public void onEvent(int event, String file) {
-
-                Log.e("FILEOBSERVER", "File was created: " + file);
-
-                if (event == FileObserver.CREATE) {
-
-                    final String filePath = Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES) + "/" + file;
-
-                    Log.e("FILEOBSERVER", "FileName: " + file);
-                    Log.e("FILEOBSERVER", "FilePath: " + filePath);
-
-
-                    //add new image to batch database
-                    databaseTools.insertNewScore(file, filePath);
-
-                    //notify external memory to scan for new image
-                    final Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                    final Uri contentUri = Uri.parse(filePath);
-                    scanIntent.setData(contentUri);
-                    sendBroadcast(scanIntent);
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            int color = Color.parseColor("#000000");
-                            captureButton.setColorFilter(color);
-                            captureButton.setEnabled(true);
-
-                            //replace thumbnail with new image
-//                            Bitmap bmImg = BitmapFactory.decodeFile(filePath);
-//                            captureThumbnail.setImageBitmap(bmImg);
-
-                            Uri uri = Uri.fromFile(new File(filePath));
-                            Picasso.with(CameraActivity.this).load(uri).into(captureThumbnail);
-
-                            //make done button and counter visible
-                            imageCount += 1;
-                            counterTextView.setText(String.valueOf(imageCount));
-                            if (imageCount > 0) {
-                                doneButton.setVisibility(View.VISIBLE);
-                                counterImageBackground.setVisibility(View.VISIBLE);
-                            }
-                        }
-                    });
-                }
-            }
-        };
-
-        fileObserver.startWatching();
 
     }
 
@@ -223,7 +194,9 @@ public class CameraActivity extends AppCompatActivity {
 
         @Override
         public void onError(CameraDevice camera, int error) {
-            cameraDevice.close();
+            if (cameraDevice != null) {
+                cameraDevice.close();
+            }
             cameraDevice = null;
         }
     };
@@ -262,9 +235,9 @@ public class CameraActivity extends AppCompatActivity {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
 
-            int color = Color.parseColor("#505050");
-            captureButton.setColorFilter(color);
-            captureButton.setEnabled(false);
+//            int color = Color.parseColor("#505050");
+//            captureButton.setColorFilter(color);
+//            captureButton.setEnabled(false);
 
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraDevice.getId());
             Size[] jpegSizes = null;
@@ -289,21 +262,102 @@ public class CameraActivity extends AppCompatActivity {
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
 
-            final File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            final File file = new File(path, generateBatchName("IMG") + ".jpg");
+            Date c = Calendar.getInstance().getTime();
+            SimpleDateFormat df = new SimpleDateFormat("yyyy.MM.dd", Locale.ENGLISH);
+            String actualDate = df.format(c);
+
+            String dateFromPref = counterPref.getString("today", "");
+//            filePathPlaceHolderNumber++;
+
+            SharedPreferences.Editor edit = counterPref.edit();
+            edit.putInt("count", filePathPlaceHolderNumber);
+            edit.putString("today", actualDate);
+
+            Log.i(TAG, "counter settings datefrom pref: " + dateFromPref);
+            Log.i(TAG, "counter settings actual date: " + actualDate);
+            Log.i(TAG, "counter settings count from pref: " + filePathPlaceHolderNumber);
+            Log.i(TAG, "counter settings count after: " + filePathPlaceHolderNumber);
+
+            if (!dateFromPref.equals(actualDate)) {
+                filePathPlaceHolderNumber = 0;
+            }
+
+            String batchName = generateName("BATCH") + filePathPlaceHolderNumber;
+            edit.putString("batchName", batchName);
+            edit.apply();
+
+            Log.i(TAG, "BATCH NAME: " + batchName);
+
+            final File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/" + batchName);
+            final File file = new File(path, generateName("IMG") + ".jpg");
 
             path.mkdirs();
 
             Log.e(TAG, "filepath: " + file.getAbsolutePath());
 
+            fileDirectory = path.getPath();
+            filePath = file.getPath();
+
             SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0);
             SharedPreferences.Editor editor = pref.edit();
 
-            editor.putString("filePath", file.getPath());
+            editor.putString("fileDirectory", file.getPath());
             editor.apply();
 
+            Log.e(TAG, "FILEOBS DIR: " + fileDirectory);
+            Log.e(TAG, "FILEOBS PATH: " + filePath);
 
-            Log.e(TAG, "file exists: " + file.canRead());
+
+            fileObserver = new FileObserver(fileDirectory) {
+                @Override
+                public void onEvent(int event, String file) {
+
+                    Log.e("FILEOBSERVER", "File was created: " + file);
+
+                    if (event == FileObserver.CREATE) {
+
+
+                        final String filePath = fileDirectory + "/" + file;
+//                    final String filePath = Environment.getExternalStoragePublicDirectory(DIRECTORY_PICTURES) + "/" + generateName("BATCH") + filePathPlaceHolderNumber + "/" + file;
+
+                        Log.e("FILEOBSERVER", "FileName: " + file);
+                        Log.e("FILEOBSERVER", "FilePath: " + filePath);
+
+                        //add new image to batch database
+                        databaseTools.insertNewScore(file, filePath);
+
+                        //notify external memory to scan for new image
+                        final Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                        final Uri contentUri = Uri.parse(filePath);
+                        scanIntent.setData(contentUri);
+                        sendBroadcast(scanIntent);
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                Uri uri = Uri.fromFile(new File(filePath));
+                                Picasso.with(CameraActivity.this).load(uri).into(captureThumbnail);
+
+                                //make done button and counter visible
+                                imageCount += 1;
+                                counterTextView.setText(String.valueOf(imageCount));
+                                if (imageCount > 0) {
+                                    doneButton.setVisibility(View.VISIBLE);
+                                    counterImageBackground.setVisibility(View.VISIBLE);
+                                }
+                            }
+                        });
+                    }
+                }
+            };
+
+            fileObserver.startWatching();
+
+
+
+
+
 
 
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
@@ -346,6 +400,7 @@ public class CameraActivity extends AppCompatActivity {
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
                     Log.e(TAG, "capture completed");
+
                     createCameraPreview();
                 }
             };
@@ -410,11 +465,7 @@ public class CameraActivity extends AppCompatActivity {
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
             imageDimension = map.getOutputSizes(SurfaceTexture.class)[0];
-            // Add permission for camera and let user grant the permission
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(CameraActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
-                return;
-            }
+
             manager.openCamera(cameraId, stateCallback, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -445,16 +496,7 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                // close the app
-                Toast.makeText(CameraActivity.this, "Sorry!!!, you can't use this app without granting permission", Toast.LENGTH_LONG).show();
-                finish();
-            }
-        }
-    }
+
 
     @Override
     protected void onResume() {

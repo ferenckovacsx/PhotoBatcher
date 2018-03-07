@@ -25,7 +25,6 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.ferenckovacsx.android.photobatcher.pojo.BatchPOJO;
 import com.ferenckovacsx.android.photobatcher.tools.CustomACTVAdapter;
@@ -45,6 +44,7 @@ import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.AppendValuesResponse;
+import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
@@ -71,21 +71,22 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
     GoogleAccountCredential mCredential;
 
     final String TAG = "ADDtoEXISTING";
+    String requestType;
 
     static final int REQUEST_ACCOUNT_PICKER = 1000;
     static final int REQUEST_AUTHORIZATION = 1001;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
 
-    private static final String BUTTON_TEXT = "Call Google Sheets API";
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS};
 
-    //    ArrayAdapter<String> ACTVadapter;
     CustomACTVAdapter ACTVadapter;
-    ArrayList<String> listOfBatchIDs;
     ArrayList<BatchPOJO> listOfBatches;
-    BatchPOJO selectedBatch;
+
+    String rangeToUpdate;
+    String originalNote; //append new note to existing note (if exists)
+    int originalImageCount; //new imagecount = original + current
 
     public AddToExistingFragment() {
     }
@@ -137,37 +138,44 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
         modifiedEditText.setFocusable(false);
         modifiedEditText.setFocusableInTouchMode(false);
 
+        submitButton.setEnabled(false);
 
         mProgress = new ProgressDialog(getContext());
         mProgress.setMessage("Adatok lekérdezése...");
 
         listOfBatches = new ArrayList<>();
-        listOfBatchIDs = new ArrayList<>();
 
-        startApiRequest("GET");
+        requestType = "GET";
+        startApiRequest();
 
         Log.i(TAG, "list of batches onCreateView: " + listOfBatches.size());
-
-        ACTVadapter = new CustomACTVAdapter(getContext(), R.layout.actv_row_item, listOfBatches);
-        selectBatchACTV.setThreshold(1);
-        selectBatchACTV.setAdapter(ACTVadapter);
 
         selectBatchACTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ACTVadapter = new CustomACTVAdapter(getContext(), R.layout.actv_row_item, listOfBatches);
+                selectBatchACTV.setThreshold(1);
+                selectBatchACTV.setAdapter(ACTVadapter);
                 selectBatchACTV.showDropDown();
             }
         });
+
 
         selectBatchACTV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                submitButton.setEnabled(true);
+
+                requestType = "GETROW";
+                new MakeRequestTask(mCredential).execute("GETROW");
+
+                originalImageCount = ACTVadapter.getItem(position).imageCount;
+                originalNote = ACTVadapter.getItem(position).note;
+
                 selectBatchACTV.setText(ACTVadapter.getItem(position).batchID);
                 uploadDateEditText.setText(ACTVadapter.getItem(position).uploadDate);
                 modifiedEditText.setText(ACTVadapter.getItem(position).lastModifiedDate);
-
-                Toast.makeText(getContext(), ACTVadapter.getItem(position).batchID, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -183,7 +191,8 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startApiRequest("SET");
+                requestType = "SET";
+                startApiRequest();
             }
         });
 
@@ -220,11 +229,11 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
      * of the preconditions are not satisfied, the app will prompt the user as
      * appropriate.
      */
-    private void startApiRequest(String requestType) {
+    private void startApiRequest() {
         if (!isGooglePlayServicesAvailable()) {
             acquireGooglePlayServices();
         } else if (mCredential.getSelectedAccountName() == null) {
-            chooseAccount(requestType);
+            chooseAccount();
         } else if (!isDeviceOnline()) {
             Log.i(TAG, "No network connection available.");
         } else {
@@ -243,14 +252,14 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
      * is granted.
      */
     @AfterPermissionGranted(REQUEST_PERMISSION_GET_ACCOUNTS)
-    private void chooseAccount(String requestType) {
+    private void chooseAccount() {
         if (EasyPermissions.hasPermissions(
                 getContext(), Manifest.permission.GET_ACCOUNTS)) {
             String accountName = getActivity().getPreferences(Context.MODE_PRIVATE)
                     .getString(PREF_ACCOUNT_NAME, null);
             if (accountName != null) {
                 mCredential.setSelectedAccountName(accountName);
-                startApiRequest(requestType);
+                startApiRequest();
             } else {
                 // Start a dialog from which the user can choose an account
                 startActivityForResult(
@@ -289,7 +298,7 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
                             "This app requires Google Play Services. Please install " +
                                     "Google Play Services on your device and relaunch this app.");
                 } else {
-                    startApiRequest("GET");
+                    startApiRequest();
                 }
                 break;
             case REQUEST_ACCOUNT_PICKER:
@@ -304,13 +313,13 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
                         editor.putString(PREF_ACCOUNT_NAME, accountName);
                         editor.apply();
                         mCredential.setSelectedAccountName(accountName);
-                        startApiRequest("GET");
+                        startApiRequest();
                     }
                 }
                 break;
             case REQUEST_AUTHORIZATION:
                 if (resultCode == RESULT_OK) {
-                    startApiRequest("GET");
+                    startApiRequest();
                 }
                 break;
         }
@@ -441,18 +450,34 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
         protected String doInBackground(String... params) {
             try {
 
-                String requestType = params[0];
+//                String requestType = params[0];
+
+                Log.i(TAG, "doInBackground request type: " + requestType);
 
                 if (requestType.equals("SET")) {
+
+                    Log.i(TAG, "SETDATA original count: " + originalImageCount);
+                    Log.i(TAG, "SETDATA original note: " + originalNote);
+
                     String batchName = selectBatchACTV.getText().toString();
-                    int imageCount = Integer.parseInt(imageCountEditText.getText().toString());
                     String uploadDate = getFormattedDate();
                     String originalUploadDate = uploadDateEditText.getText().toString();
+
+                    //add original imagecount to new imagecount
+                    int imageCount = Integer.parseInt(imageCountEditText.getText().toString()) + originalImageCount;
+
                     String note = noteEditText.getText().toString();
+                    if (!note.equals("")){
+                        note = originalNote + "\n\nÚj megjegyzés (hozzáadva: " + uploadDate + "): \n" + noteEditText.getText().toString();
+                    }
+
                     return setData(batchName, imageCount, originalUploadDate, note, uploadDate);
                 } else if (requestType.equals("GET")) {
-                    getDataFromApi();
+                    getBatchesFromApi();
                     return "getData()";
+                } else if (requestType.equals("GETROW")) {
+                    getRowToUpdate();
+                    return "getRow()";
                 }
                 return "";
 
@@ -471,19 +496,12 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
          * @return List of names and majors
          * @throws IOException
          */
-        private BatchPOJO getDataFromApi() throws IOException {
+        private String getBatchesFromApi() throws IOException {
 
             Log.i(TAG, "getData");
 
-
-//            setData("20180304_DCIM", 8, "2018.08.05, 12:12", "Nincs megjegyzés", "");
-
-//            BatchPOJO selectedBatch = new BatchPOJO();
-
             String spreadsheetId = "1EjMmkgbJVtekL0j8JTtmFdYAIO38kRzA_27IAznaOE0";
             String range = "A2:E";
-
-            List<String> results = new ArrayList<>();
 
             ValueRange response = this.mService.spreadsheets().values().get(spreadsheetId, range).execute();
 
@@ -527,47 +545,53 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
                         Log.i(TAG, "lastmod Eexception");
                     }
 
-
-//                    if (!row.get(0).toString().equals(null)){
-//                        selectedBatch.setBatchID(row.get(0).toString());
-//                    }
-//                    if (!row.get(1).toString().equals(null)){
-//                        selectedBatch.setImageCount(Integer.valueOf(row.get(1).toString()));
-//                    }
-//                    if (!row.get(2).toString().equals(null)){
-//                        selectedBatch.setUploadDate(row.get(2).toString());
-//                    }
-//                    if (!row.get(3).toString().isEmpty()){
-//                        selectedBatch.setNote(row.get(3).toString());
-//                    }
-//
-//                    if (!row.get(4).toString().isEmpty()){
-//                        selectedBatch.setNote(row.get(4).toString());
-//                    }
-
-//
-//                    selectedBatch.setBatchID(row.get(0).toString());
-//                    selectedBatch.setImageCount(Integer.valueOf(row.get(1).toString()));
-//                    selectedBatch.setUploadDate(row.get(2).toString());
-//                    selectedBatch.setNote(row.get(3).toString());
-//                    selectedBatch.setLastModifiedDate(row.get(4).toString());
-
                     listOfBatches.add(selectedBatch);
                 }
-            }
-
-
-            for (int i = 0; i < listOfBatches.size(); i++) {
-
-                listOfBatchIDs.add(listOfBatches.get(i).batchID);
             }
 
             ACTVadapter.notifyDataSetChanged();
 
             Log.i(TAG, "list of batches size: " + listOfBatches.size());
 
-            return selectedBatch;
+            return response.toString();
         }
+
+
+        private String getRowToUpdate() throws IOException {
+
+            Log.i(TAG, "getRow");
+
+            String spreadsheetId = "1EjMmkgbJVtekL0j8JTtmFdYAIO38kRzA_27IAznaOE0";
+            String range = "A2:E";
+            String selectedBatchID = selectBatchACTV.getText().toString();
+
+            ValueRange response = this.mService.spreadsheets().
+                    values().get(spreadsheetId, range).execute();
+
+            List<List<Object>> values = response.getValues();
+
+            Log.i(TAG, "getValues: " + values.toString());
+
+            if (response.getRange().contains(selectedBatchID)) {
+                Log.i(TAG, "IT'S A MATCH: " + response.getRange());
+            }
+
+            int i = 0;
+            if (values != null) {
+                for (List row : values) {
+                    i += 1;
+                    //0 - ID / 1 - count / 2 - date / 3 - note / 4 - modified
+                    if (row.get(0).equals(selectedBatchID)) {
+                        Log.i(TAG, "IT'S A MATCH! i= " + i);
+                        rangeToUpdate = "A" + (i + 1) + ":E" + (i + 1);
+                        Log.i(TAG, "range to update: " + rangeToUpdate);
+                    }
+                }
+            }
+
+            return rangeToUpdate;
+        }
+
 
         private String setData(String batchID, int numberOfImages, String dateAdded, String note, String dateModified) throws IOException {
 
@@ -577,16 +601,13 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
 
             // The A1 notation of a range to search for a logical table of data.
             // Values will be appended after the last row of the table.
-            String range = "A:E";
+            String range = rangeToUpdate;
 
             // How the input data should be interpreted.
             String valueInputOption = "USER_ENTERED";
 
-            // How the input data should be inserted.
-            String insertDataOption = "";
-
             //for the values that you want to input, create a list of object lists
-            List<List<Object>> rowToAppend = new ArrayList<>();
+            List<List<Object>> rowToUpdate = new ArrayList<>();
 
             //Where each value represents the list of objects that is to be written to a range
             //I simply want to edit a single row, so I use a single list of objects
@@ -598,21 +619,20 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
             rowData.add(dateModified);
 
             //add data to row
-            rowToAppend.add(rowData);
+            rowToUpdate.add(rowData);
 
-            ValueRange requestBody = new ValueRange().setValues(rowToAppend);
+            ValueRange requestBody = new ValueRange().setValues(rowToUpdate);
 
-            Sheets.Spreadsheets.Values.Append request = mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
+
+            Sheets.Spreadsheets.Values.Update request = mService.spreadsheets().values().update(spreadsheetId, range, requestBody);
             request.setValueInputOption(valueInputOption);
 
-            AppendValuesResponse response = request.execute();
+            UpdateValuesResponse response = request.execute();
 
             Log.i(TAG, "append response: " + response.toString());
 
             return "SET";
-
         }
-
 
         @Override
         protected void onPreExecute() {
@@ -622,10 +642,13 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
 
         @Override
         protected void onPostExecute(String output) {
-            mProgress.hide();
+            mProgress.dismiss();
             if (output == null) {
                 Log.i(TAG, "No results returned.");
-            } else if (output.equals("SET")){
+            } else if (output.equals("SET")) {
+
+                DatabaseTools dbTools = new DatabaseTools(getContext());
+                dbTools.clearTable();
 
                 // custom dialog
                 final Dialog dialog = new Dialog(getContext());

@@ -22,6 +22,8 @@ import java.util.ArrayList;
 
 public class DatabaseTools extends SQLiteOpenHelper {
 
+    String TAG = "DATABASE";
+
     private static final String DATABASE_NAME = "batchDB";
     private static final String COLUMN_IMAGE_NAME = "Name";
     private static final String COLUMN_IMAGE_PATH = "Path";
@@ -95,6 +97,7 @@ public class DatabaseTools extends SQLiteOpenHelper {
     }
 
     public void clearTable() {
+        Log.d(TAG, "clearTable");
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM " + DATABASE_NAME);
     }
