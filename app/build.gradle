@@ -3,11 +3,11 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "com.example.android.photobatcher"
-        minSdkVersion 21
+        applicationId "com.ferenckovacsx.photobatcher"
+        minSdkVersion 14
         targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
+        versionCode 7
+        versionName "7.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -29,7 +29,7 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.5.2'
 
     compile 'com.android.volley:volley:1.1.0'
-    compile 'com.google.android.gms:play-services-auth:11.8.0'
+    compile 'com.google.android.gms:play-services-auth:12.0.0'
     compile 'pub.devrel:easypermissions:0.3.0'
     compile('com.google.api-client:google-api-client-android:1.23.0') {
         exclude group: 'org.apache.httpcomponents'
@@ -37,8 +37,16 @@ dependencies {
     compile('com.google.apis:google-api-services-sheets:v4-rev506-1.23.0') {
         exclude group: 'org.apache.httpcomponents'
     }
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
 
+    implementation 'io.fotoapparat:fotoapparat:-SNAPSHOT'
+    compile 'com.h6ah4i.android.widget.verticalseekbar:verticalseekbar:0.7.2'
+    implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
 }
+
+
 
 
 

@@ -6,7 +6,7 @@
     android:background="@color/colorPrimary">
 
     <ImageView
-        android:id="@+id/back_imageview"
+        android:id="@+id/add_to_existing_back_iv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="10dp"
@@ -15,56 +15,51 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/back_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Vissza"
-        android:textColor="#000000"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@id/back_imageview"
-        app:layout_constraintStart_toEndOf="@id/back_imageview"
-        app:layout_constraintTop_toTopOf="@id/back_imageview" />
-
-    <TextView
         android:id="@+id/add_to_existing_textview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
         android:text="Hozzáadás meglévő tételhez"
-        android:textSize="16dp"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="@+id/add_to_existing_back_iv"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/back_imageview" />
+        app:layout_constraintTop_toTopOf="@+id/add_to_existing_back_iv" />
 
     <AutoCompleteTextView
         android:id="@+id/select_batch_ACTV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="40dp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/add_to_existing_textview" />
+        app:layout_constraintTop_toBottomOf="@+id/add_to_existing_back_iv" />
 
     <TextView
         android:id="@+id/select_from_list_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="Válassz a listából:"
+        android:layout_marginLeft="32dp"
+        android:layout_marginStart="32dp"
+        android:text="Válasszon egy meglévő tételt a listából:"
         android:textColor="#000000"
-        android:textSize="12sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/select_batch_ACTV"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginStart="32dp"
         android:text="Feltöltés ideje:"
         android:textColor="#000000"
-        android:textSize="12sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/upload_date_edittext"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -72,21 +67,24 @@
         android:id="@+id/upload_date_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="40dp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+
         app:layout_constraintTop_toBottomOf="@+id/select_batch_ACTV" />
 
     <TextView
         android:id="@+id/last_modified_date_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginStart="32dp"
         android:text="Utolsó módosítás ideje:"
         android:textColor="#000000"
-        android:textSize="12sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/last_modified_date_edittext"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -94,21 +92,47 @@
         android:id="@+id/last_modified_date_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="40dp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/upload_date_edittext" />
 
     <TextView
+        android:id="@+id/add_to_existing_image_count_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="32dp"
+        android:layout_marginStart="32dp"
+        android:text="Képek száma:"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/add_to_existing_image_count_edittext"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <EditText
+        android:id="@+id/add_to_existing_image_count_edittext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="40dp"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/last_modified_date_edittext" />
+
+    <TextView
         android:id="@+id/add_note_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginStart="32dp"
         android:text="Megjegyzés:"
         android:textColor="#000000"
-        android:textSize="12sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/add_note_edittext"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -116,23 +140,28 @@
         android:id="@+id/add_note_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="40dp"
+        android:textSize="20sp"
+        android:imeOptions="actionDone"
+        android:singleLine="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/last_modified_date_edittext" />
+        app:layout_constraintTop_toBottomOf="@+id/add_to_existing_image_count_edittext" />
 
 
     <Button
         android:id="@+id/submit_existing"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:background="@drawable/shape_button"
+        android:layout_marginBottom="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginStart="24dp"
+        android:background="@drawable/selector_submit_button"
+        android:padding="10dp"
         android:text="Feltöltés"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

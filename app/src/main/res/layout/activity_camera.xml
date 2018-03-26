@@ -1,29 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextureView
-        android:id="@+id/texture"
+    <io.fotoapparat.view.CameraView
+        android:id="@+id/camera2Preview"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/bottom_toolbar"
-        android:layout_alignParentTop="true" />
+        android:layout_height="0dp">
 
+        <io.fotoapparat.view.FocusView
+            android:id="@+id/focusView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+        </io.fotoapparat.view.FocusView>
+
+    </io.fotoapparat.view.CameraView>
+
+    <ImageView
+        android:id="@+id/torchSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:src="@drawable/selector_flash_button" />
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@id/bottom_toolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+"
+            android:textColor="#ffffff"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+            android:layout_width="wrap_content"
+            android:layout_height="250dp"
+            android:padding="16dp">
+
+            <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar
+                android:id="@+id/zoomSeekBar"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:splitTrack="false"
+                app:seekBarRotation="CW270" /> <!-- Rotation: CW90 or CW270 -->
+        </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-"
+            android:textColor="#ffffff"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/no_permission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Jogosultság megtagadva. \nKamera nem használható."
+        android:textSize="20sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_toolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText"
+        tools:visibility="visible" />
 
     <RelativeLayout
         android:id="@+id/bottom_toolbar"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_alignParentBottom="true"
-        android:background="@color/colorPrimary">
+        android:background="@color/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
 
         <ImageView
-            android:id="@+id/capture_thumbnail"
+            android:id="@+id/camera2_capture_thumbnail"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:layout_margin="10dp"
@@ -33,11 +113,13 @@
             android:id="@+id/counter_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="-22dp"
             android:layout_marginStart="-22dp"
-            android:layout_toEndOf="@id/capture_thumbnail">
+            android:layout_toEndOf="@id/camera2_capture_thumbnail"
+            android:layout_toRightOf="@id/camera2_capture_thumbnail">
 
             <ImageView
-                android:id="@+id/counter_background"
+                android:id="@+id/camera2_counter_background"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
@@ -45,19 +127,20 @@
                 android:visibility="gone" />
 
             <TextView
-                android:id="@+id/counter_textview"
+                android:id="@+id/camera2_counter_textview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:padding="15dp"
-                android:text="12"
+                android:padding="5dp"
                 android:textColor="#ffffff"
                 android:textSize="20sp" />
 
+
         </RelativeLayout>
 
+
         <ImageView
-            android:id="@+id/btn_takepicture"
+            android:id="@+id/btn_camera2_takepicture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
@@ -65,13 +148,17 @@
             android:src="@drawable/ic_capture_black" />
 
         <ImageView
-            android:id="@+id/btn_done"
+            android:id="@+id/camera2_btn_done"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:padding="16dp"
-            android:src="@drawable/green" />
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:padding="24dp"
+            android:src="@drawable/green"
+            android:visibility="gone" />
 
     </RelativeLayout>
-</RelativeLayout>
+</android.support.constraint.ConstraintLayout>
