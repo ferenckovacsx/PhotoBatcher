@@ -5,7 +5,6 @@ import android.accounts.AccountManager;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -18,7 +17,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,10 +27,11 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 
 import com.ferenckovacsx.photobatcher.pojo.BatchPOJO;
-import com.ferenckovacsx.photobatcher.tools.CustomACTVAdapter;
+import com.ferenckovacsx.photobatcher.tools.ACTVadapter;
 import com.ferenckovacsx.photobatcher.tools.DatabaseTools;
 import com.ferenckovacsx.photobatcher.pojo.ImagePOJO;
 import com.ferenckovacsx.photobatcher.R;
@@ -89,7 +88,7 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS};
 
-    CustomACTVAdapter ACTVadapter;
+    com.ferenckovacsx.photobatcher.tools.ACTVadapter ACTVadapter;
     ArrayList<BatchPOJO> listOfBatches;
     ArrayList<ImagePOJO> currentBatch;
 
@@ -146,7 +145,6 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
 
         imageCountEditText.setText(String.valueOf(currentBatch.size()));
 
-        selectBatchACTV.setFocusable(false);
         uploadDateEditText.setClickable(false);
         uploadDateEditText.setFocusable(false);
         uploadDateEditText.setFocusableInTouchMode(false);
@@ -163,40 +161,51 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
         listOfBatches = new ArrayList<>();
 
         requestType = "GET";
-        startApiRequest();
+//        startApiRequest();
 
         Log.i(TAG, "list of batches onCreateView: " + listOfBatches.size());
 
-        selectBatchACTV.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ACTVadapter = new CustomACTVAdapter(getContext(), R.layout.actv_row_item, listOfBatches);
-                selectBatchACTV.setThreshold(1);
-                selectBatchACTV.setAdapter(ACTVadapter);
-                selectBatchACTV.showDropDown();
-            }
-        });
+        if (listOfBatches.size() > 1) {
+            ACTVadapter = new ACTVadapter(getContext(), R.layout.actv_row_item, listOfBatches);
+            selectBatchACTV.setAdapter(ACTVadapter);
+
+            selectBatchACTV.requestFocus();
+
+            selectBatchACTV.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    selectBatchACTV.showDropDown();
+                }
+            });
 
 
-        selectBatchACTV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            selectBatchACTV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                submitButton.setEnabled(true);
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    submitButton.setEnabled(true);
 
-                requestType = "GETROW";
-                startApiRequest();
+                    requestType = "GETROW";
+                    startApiRequest();
 
-//                new MakeRequestTask(mCredential).execute("GETROW");
+                    originalImageCount = ACTVadapter.getItem(position).imageCount;
+                    originalNote = ACTVadapter.getItem(position).note;
 
-                originalImageCount = ACTVadapter.getItem(position).imageCount;
-                originalNote = ACTVadapter.getItem(position).note;
+                    selectBatchACTV.setText(ACTVadapter.getItem(position).batchID);
+                    uploadDateEditText.setText(ACTVadapter.getItem(position).uploadDate);
+                    modifiedEditText.setText(ACTVadapter.getItem(position).lastModifiedDate);
+                }
+            });
+        } else {
+            selectBatchACTV.setFocusable(false);
+            selectBatchACTV.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(getActivity(), "Adatbázis üres!", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
 
-                selectBatchACTV.setText(ACTVadapter.getItem(position).batchID);
-                uploadDateEditText.setText(ACTVadapter.getItem(position).uploadDate);
-                modifiedEditText.setText(ACTVadapter.getItem(position).lastModifiedDate);
-            }
-        });
 
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -88,4 +88,9 @@ public class MainActivity extends AppCompatActivity implements SettingsFragment.
 
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
+    }
 }
