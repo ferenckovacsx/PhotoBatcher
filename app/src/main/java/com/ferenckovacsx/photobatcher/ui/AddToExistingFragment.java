@@ -30,6 +30,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+
 import com.ferenckovacsx.photobatcher.pojo.BatchPOJO;
 import com.ferenckovacsx.photobatcher.tools.CustomACTVAdapter;
 import com.ferenckovacsx.photobatcher.tools.DatabaseTools;
@@ -73,6 +74,7 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
     ImageView backButton;
     Button submitButton;
 
+
     GoogleAccountCredential mCredential;
 
     final String TAG = "ADDtoEXISTING";
@@ -93,7 +95,9 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
 
     DatabaseTools databaseTools;
 
-    String rangeToUpdate;
+    SharedPreferences sharedPreferences;
+
+    String rangeToUpdate, rootFolder;
     String originalNote; //append new note to existing note (if exists)
     int originalImageCount; //new imagecount = original + current
 
@@ -135,8 +139,10 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
         databaseTools = new DatabaseTools(getContext());
         currentBatch = databaseTools.getCurrentBatch();
 
-        SharedPreferences preferences = getActivity().getSharedPreferences("sheetIdPref", MODE_PRIVATE);
-        spreadsheetID = preferences.getString("sheetID", "1EjMmkgbJVtekL0j8JTtmFdYAIO38kRzA_27IAznaOE0");
+        sharedPreferences = getActivity().getSharedPreferences("settingsPref", MODE_PRIVATE);
+        spreadsheetID = sharedPreferences.getString("sheetID", "1EjMmkgbJVtekL0j8JTtmFdYAIO38kRzA_27IAznaOE0");
+        rootFolder = sharedPreferences.getString("sourceFolder", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/NE-TEKVILL");
+
 
         imageCountEditText.setText(String.valueOf(currentBatch.size()));
 
@@ -669,10 +675,10 @@ public class AddToExistingFragment extends Fragment implements EasyPermissions.P
                     Log.i(TAG, currentBatch.get(i).getImagePath());
                     Log.i(TAG, currentBatch.get(i).getImageName());
 
-                    String newImageLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/FotoAlk/" + selectBatchACTV.getText().toString() + "/" + currentBatch.get(i).getImageName();
+                    String newImageLocation = rootFolder + "/" + selectBatchACTV.getText().toString() + "/" + currentBatch.get(i).getImageName();
 
                     try {
-                        Utilities.moveFile(currentBatch.get(i).getImagePath(), newImageLocation);
+                        Utilities.moveFile(currentBatch.get(i).getImagePath(), newImageLocation, selectBatchACTV.getText().toString());
 
                         //notify external memory to scan for new image
                         final Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);

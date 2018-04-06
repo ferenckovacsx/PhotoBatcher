@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -29,7 +30,6 @@ import io.fotoapparat.Fotoapparat;
 import io.fotoapparat.configuration.UpdateConfiguration;
 import io.fotoapparat.error.CameraErrorListener;
 import io.fotoapparat.exception.camera.CameraException;
-import io.fotoapparat.parameter.Resolution;
 import io.fotoapparat.parameter.ScaleType;
 import io.fotoapparat.preview.Frame;
 import io.fotoapparat.preview.FrameProcessor;
@@ -46,7 +46,7 @@ import static io.fotoapparat.log.LoggersKt.logcat;
 import static io.fotoapparat.log.LoggersKt.loggers;
 import static io.fotoapparat.selector.FlashSelectorsKt.off;
 import static io.fotoapparat.selector.FlashSelectorsKt.torch;
-import static io.fotoapparat.selector.ResolutionSelectorsKt.highestResolution;
+
 
 public class CameraActivity extends AppCompatActivity {
 
@@ -91,6 +91,9 @@ public class CameraActivity extends AppCompatActivity {
     int imageCount = 0;
     DatabaseTools databaseTools;
 
+    boolean success;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,9 +126,11 @@ public class CameraActivity extends AppCompatActivity {
 
         takePictureOnClick();
 
+
         doneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
 
                 Intent intent = new Intent(CameraActivity.this, GalleryActivity.class);
                 startActivity(intent);
@@ -261,7 +266,8 @@ public class CameraActivity extends AppCompatActivity {
     private void takePicture() {
 
 
-        File tempDir = new File(getFilesDir() + "/PhotoBatcherTemp");
+//        File tempDir = new File(getFilesDir() + "/PhotoBatcherTemp");
+        File tempDir = new File(Environment.getExternalStorageDirectory() + "/PhotoBatcherTemp");
         tempDir.mkdirs();
 
         String tempDirString = tempDir.getPath();
@@ -269,6 +275,7 @@ public class CameraActivity extends AppCompatActivity {
 
         file = new File(tempDirString, fileNameString);
         final String completeFilePath = file.getPath();
+
 
         PhotoResult photoResult = fotoapparat.takePicture();
 
@@ -305,6 +312,8 @@ public class CameraActivity extends AppCompatActivity {
                         }
                     }
                 });
+
+
     }
 
     @Override
@@ -349,5 +358,6 @@ public class CameraActivity extends AppCompatActivity {
             // Perform frame processing, if needed
         }
     }
+
 
 }

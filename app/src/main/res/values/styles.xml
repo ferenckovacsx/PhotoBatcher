@@ -2,18 +2,9 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <!--<item name="android:dialogTheme">@style/Theme_Dialog</item>-->
     </style>
-
-    <!--<style name="Theme_Dialog" parent="Theme.AppCompat.Dialog">-->
-        <!--<item name="android:windowMinWidthMajor">70%</item>-->
-        <!--<item name="android:windowMinWidthMinor">70%</item>-->
-    <!--</style>-->
-
-
 
 </resources>

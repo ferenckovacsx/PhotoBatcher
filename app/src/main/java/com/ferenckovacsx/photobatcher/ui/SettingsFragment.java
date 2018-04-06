@@ -2,9 +2,11 @@ package com.ferenckovacsx.photobatcher.ui;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
@@ -18,18 +20,23 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ferenckovacsx.photobatcher.R;
+import com.ferenckovacsx.photobatcher.tools.dirchooser.DirectoryChooserActivity;
+import com.ferenckovacsx.photobatcher.tools.dirchooser.DirectoryChooserConfig;
 
 import static android.content.Context.MODE_PRIVATE;
 
 
 public class SettingsFragment extends Fragment {
 
+    static final int DIRECTORY_PICKER_REQUESTCODE = 100;
+
     private OnFragmentInteractionListener mListener;
     SharedPreferences sharedPreferences;
+    SharedPreferences.Editor sharedPreferencesEditor;
 
-    TextView sheetIdTextView;
+    TextView sheetIdTextView, sourceFolderTextView;
     EditText sheetIdInputEditText;
-    String sheetId;
+    String sheetId, sourceFolder, defaultSourceFolder;
     ImageView backButton;
 
     public SettingsFragment() {
@@ -48,12 +55,19 @@ public class SettingsFragment extends Fragment {
         View settingsView = inflater.inflate(R.layout.fragment_settings, container, false);
 
         sheetIdTextView = settingsView.findViewById(R.id.sheet_id_textview);
+        sourceFolderTextView = settingsView.findViewById(R.id.source_folder_textview);
         backButton = settingsView.findViewById(R.id.settings_back_imageview);
 
-        sharedPreferences = getActivity().getSharedPreferences("sheetIdPref", MODE_PRIVATE);
+        defaultSourceFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/NE-TEKVILL";
+
+        sharedPreferences = getActivity().getSharedPreferences("settingsPref", MODE_PRIVATE);
+        sharedPreferencesEditor = sharedPreferences.edit();
+
         sheetId = sharedPreferences.getString("sheetID", "1EjMmkgbJVtekL0j8JTtmFdYAIO38kRzA_27IAznaOE0");
+        sourceFolder = sharedPreferences.getString("sourceFolder", defaultSourceFolder);
 
         sheetIdTextView.setText(sheetId);
+        sourceFolderTextView.setText(sourceFolder);
 
         sheetIdTextView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,9 +86,8 @@ public class SettingsFragment extends Fragment {
                                 sheetIdString = sheetIdInputEditText.getText().toString();
                                 sheetIdTextView.setText(sheetIdString);
 
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("sheetID", sheetIdString);
-                                editor.apply();
+                                sharedPreferencesEditor.putString("sheetID", sheetIdString);
+                                sharedPreferencesEditor.apply();
 
                                 Log.e("DIALOG", "edittext value: " + sheetIdString);
                             }
@@ -104,6 +117,25 @@ public class SettingsFragment extends Fragment {
                     }
                 });
                 dialog.show();
+            }
+        });
+
+        sourceFolderTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                final Intent chooserIntent = new Intent(getContext(), DirectoryChooserActivity.class);
+
+                final DirectoryChooserConfig config = DirectoryChooserConfig.builder()
+                        .newDirectoryName("NE-TEKVILL")
+                        .allowReadOnlyDirectory(false)
+                        .allowNewDirectoryNameModification(true)
+                        .build();
+
+                chooserIntent.putExtra(DirectoryChooserActivity.EXTRA_CONFIG, config);
+                startActivityForResult(chooserIntent, DIRECTORY_PICKER_REQUESTCODE);
+
             }
         });
 
@@ -138,5 +170,23 @@ public class SettingsFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == DIRECTORY_PICKER_REQUESTCODE) {
+            if (resultCode == DirectoryChooserActivity.RESULT_CODE_DIR_SELECTED) {
+                sourceFolder = data.getStringExtra(DirectoryChooserActivity.RESULT_SELECTED_DIR);
+                Log.e("SETTINGS", "selected directory: " + sourceFolder);
+                sourceFolderTextView.setText(sourceFolder);
+                sharedPreferencesEditor.putString("sourceFolder", sourceFolder);
+                sharedPreferencesEditor.apply();
+
+            } else {
+                // Nothing selected
+            }
+        }
     }
 }

@@ -5,8 +5,8 @@ import android.accounts.AccountManager;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -18,7 +18,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,16 +27,27 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.ferenckovacsx.photobatcher.R;
 import com.ferenckovacsx.photobatcher.pojo.ImagePOJO;
 import com.ferenckovacsx.photobatcher.tools.DatabaseTools;
-import com.ferenckovacsx.photobatcher.R;
 import com.ferenckovacsx.photobatcher.tools.Utilities;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.drive.CreateFileActivityOptions;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
+import com.google.api.client.http.FileContent;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -47,7 +57,12 @@ import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
+
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,7 +87,14 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
     ImageView backButton;
     Button submitButton;
 
+    ArrayList<ImagePOJO> currentBatch;
+
+    SharedPreferences sharedPreferences;
+    String spreadsheetID, rootFolder;
+
     GoogleAccountCredential mCredential;
+    GoogleSignInAccount mGoogleAccount;
+
 
     final String TAG = "ADDNEWFRAGMENT";
 
@@ -80,12 +102,11 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
     static final int REQUEST_AUTHORIZATION = 1001;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
+    static final int REQUEST_CREATE_FILE = 1004;
 
     private static final String BUTTON_TEXT = "Call Google Sheets API";
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = {SheetsScopes.SPREADSHEETS};
-
-    ArrayList<ImagePOJO> currentBatch;
 
     public AddNewFragment() {
     }
@@ -98,6 +119,8 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
         mCredential = GoogleAccountCredential.usingOAuth2(
                 getContext(), Arrays.asList(SCOPES))
                 .setBackOff(new ExponentialBackOff());
+
+        mGoogleAccount =  GoogleSignIn.getLastSignedInAccount(getContext());
 
     }
 
@@ -113,6 +136,10 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
         imageCountEditText = submitBatchView.findViewById(R.id.add_new_image_count_edittext);
         noteEditText = submitBatchView.findViewById(R.id.add_new_note_edittext);
         backButton = submitBatchView.findViewById(R.id.add_new_back_iv);
+
+        sharedPreferences = getActivity().getSharedPreferences("settingsPref", MODE_PRIVATE);
+        spreadsheetID = sharedPreferences.getString("sheetID", "1EjMmkgbJVtekL0j8JTtmFdYAIO38kRzA_27IAznaOE0");
+        rootFolder = sharedPreferences.getString("sourceFolder", Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + "/NE-TEKVILL");
 
         batchNameEditText.setText(generateBatchName());
         batchNameEditText.setClickable(false);
@@ -265,8 +292,7 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
                     String accountName =
                             data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
                     if (accountName != null) {
-                        SharedPreferences settings =
-                                getActivity().getPreferences(MODE_PRIVATE);
+                        SharedPreferences settings = getActivity().getPreferences(MODE_PRIVATE);
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putString(PREF_ACCOUNT_NAME, accountName);
                         editor.apply();
@@ -424,8 +450,7 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
 
         private String setData(String batchID, int numberOfImages, String dateAdded, String note, String dateModified) throws IOException {
 
-            SharedPreferences preferences = getActivity().getSharedPreferences("sheetIdPref", MODE_PRIVATE);
-            String spreadsheetId = preferences.getString("sheetID", "1EjMmkgbJVtekL0j8JTtmFdYAIO38kRzA_27IAznaOE0");
+
 
             // The A1 notation of a range to search for a logical table of data.
             // Values will be appended after the last row of the table.
@@ -451,7 +476,7 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
 
             ValueRange requestBody = new ValueRange().setValues(rowToAppend);
 
-            Sheets.Spreadsheets.Values.Append request = mService.spreadsheets().values().append(spreadsheetId, range, requestBody);
+            Sheets.Spreadsheets.Values.Append request = mService.spreadsheets().values().append(spreadsheetID, range, requestBody);
             request.setValueInputOption(valueInputOption);
 
             AppendValuesResponse response = request.execute();
@@ -480,10 +505,10 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
                     Log.i(TAG, currentBatch.get(i).getImagePath());
                     Log.i(TAG, currentBatch.get(i).getImageName());
 
-                    String newImageLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/FotoAlk/" + batchNameEditText.getText().toString() + "/" + currentBatch.get(i).getImageName();
+                    String newImageLocation = rootFolder + "/" + batchNameEditText.getText().toString() + "/" + currentBatch.get(i).getImageName();
 
                     try {
-                        Utilities.moveFile(currentBatch.get(i).getImagePath(), newImageLocation);
+                        Utilities.moveFile(currentBatch.get(i).getImagePath(), newImageLocation, batchNameEditText.getText().toString());
 
                         //notify external memory to scan for new image
                         final Intent scanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
@@ -581,4 +606,19 @@ public class AddNewFragment extends Fragment implements EasyPermissions.Permissi
 
         return batchName;
     }
+
+//    public void uploadToDrive() {
+//
+//
+//        File fileMetadata = new File();
+//        fileMetadata.setName("photo.jpg");
+//        java.io.File filePath = new java.io.File("files/photo.jpg");
+//        FileContent mediaContent = new FileContent("image/jpeg", filePath);
+//        File file = Drive.driveService.files().create(fileMetadata, mediaContent)
+//                .setFields("id")
+//                .execute();
+//
+//
+//
+//    }
 }

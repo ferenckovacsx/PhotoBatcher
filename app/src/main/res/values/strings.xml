@@ -5,6 +5,17 @@
     <string name="capture_button">Capture Image From Camera</string>
     <string name="desc">capture image place holder</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="cancel_label">Vissza</string>
+    <string name="confirm_label">Rendben</string>
+    <string name="create_label">Létrehoz</string>
+    <string name="select_label">Kiválaszt</string>
+    <string name="selected_folder_label">Kiválasztott mappa:</string>
+    <string name="create_folder_label">Új mappa</string>
+    <string name="create_folder_msg">Create new folder with name "%1$s"?</string>
+    <string name="create_folder_success">Új mappa létrehozva</string>
+    <string name="create_folder_error_no_write_access">Ez a mappa írásvédett</string>
+    <string name="create_folder_error_already_exists">Ez a mappa már létezik</string>
+    <string name="create_folder_error">Mappa létrehozása sikertelen</string>
+    <string name="up_label">Fel</string>
 </resources>

@@ -1,8 +1,10 @@
 package com.ferenckovacsx.photobatcher.tools;
 
 import android.content.Context;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +18,7 @@ import com.ferenckovacsx.photobatcher.R;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -94,6 +97,7 @@ public class GalleryGridAdapter extends BaseAdapter {
             galleryImageView.setPadding(0, 0, 0, 0);
             overlay.setForeground(null);
         }
+
 
         Uri uri = Uri.fromFile(new File(dataSet.get(position).getImagePath()));
         Picasso.with(context).load(uri).resize(cardImageViewSize, cardImageViewSize).centerCrop().into(galleryImageView);

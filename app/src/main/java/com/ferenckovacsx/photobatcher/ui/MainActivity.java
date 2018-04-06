@@ -87,4 +87,5 @@ public class MainActivity extends AppCompatActivity implements SettingsFragment.
     public void onFragmentInteraction(Uri uri) {
 
     }
+
 }
